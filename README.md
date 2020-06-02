@@ -13,16 +13,4 @@ This project will be completely FOSS and the produced data will be published whe
 
 ## Roadmap
 
-This will have to be moved into proper GH issues, with milestones
-
-Week 1: generate simple cloze deletions from the CSV using word frequency and store them into a DB.Also produce a JSON output?
-
-Week 2: create a minimal webapp (in English and with no real authentication) to randomly draw cards and answer for a given deck
-
-Week 3: add flagging the cards content, add a process to register and authenticate, publish the dev version somewhere. presumably use k8s but should be possible to execute without
-
-Week 4: allow the user to write a comment on a card, add a up/down vote mechanism on comments. Alternatively, let the tag be visible only from the user ho wrote them.
-
-Week 5: if there's time, add lemmatization for some language and reimport
-
-Week 6: Improve the UI, add charts for the progress, export for Anki of the seen cards
+You can see the planned roadmap and the progress in the project issues, organized in weekly milestones.
