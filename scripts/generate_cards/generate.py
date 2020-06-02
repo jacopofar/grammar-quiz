@@ -3,7 +3,6 @@ from collections import Counter
 from csv import reader
 import json
 from random import randint
-from sys import argv
 
 # how often to add an extra cloze
 ANOTHER_CLOZE_FACTOR = 50
