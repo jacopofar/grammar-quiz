@@ -1,0 +1,2 @@
+chop==1.0
+tinysegmenter==0.4

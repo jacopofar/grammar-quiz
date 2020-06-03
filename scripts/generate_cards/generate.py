@@ -4,6 +4,12 @@ from csv import reader
 import json
 from random import randint
 
+from chop.mmseg import Tokenizer as MMSEGTokenizer
+import tinysegmenter
+
+segmenter_cmn = MMSEGTokenizer()
+segmenter_jpn = tinysegmenter.TinySegmenter()
+
 # how often to add an extra cloze
 ANOTHER_CLOZE_FACTOR = 50
 
@@ -22,14 +28,20 @@ def normalize(text: str, lang: str):
 
     This is used to allow comparison of tokens to extract the frequency
     """
-    if text[:-1] in '.,?!;':
+    if text[:-1] in '.,?!;。、？！':
         text = text[:-1]
     return text.lower()
 
 
 def tokenize(text: str, lang: str):
     """Split a string into tokens."""
-    # TODO actually tokenize according to the language
+    # Chinese Mandarin? Use chop
+    if lang == 'cmn':
+        return list(segmenter_cmn.cut(text))
+    # Japanese? use tinysegmenter
+    if lang == 'jpn':
+        return segmenter_jpn.tokenize(text)
+    # any other language, just use spaces
     return text.split()
 
 
@@ -51,7 +63,9 @@ def main_multi(sentence_file: str, link_file: str):
         id_sents[int(_id)] = (lang, text)
         if lang not in word_counters:
             word_counters[lang] = Counter()
-        word_counters[lang].update(tokenize(normalize(text, lang), lang))
+        word_counters[lang].update(
+            [normalize(token, lang) for token in tokenize(text, lang)]
+        )
         langs.add(lang)
     print(
         f'Imported {len(id_sents)} sentences')
