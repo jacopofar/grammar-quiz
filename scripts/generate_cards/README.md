@@ -9,7 +9,13 @@ can be later imported in a database or further processed.
 
 ## How to run
 
-At the moment you need only Python 3.6 or later, no dependencies, use `python3 generate.py sentences.csv links.csv`.
+You need Python3.6 or later. Download the sentence and links file mentioned above and decompress them to get two CSV
+files, `sentences.csv` and `links.csv`.
 
-The script doesn't perform a proper tokenizing so it does not work well on Chinese, Japanese or other languages not
-using spaces between words, and likewise doesn't handle morphology or lemmatization yet.
+It's a good idea to create a virtual environment, with `python3 -m venv .venv`. If you get an error because there's no
+`venv` package and are on Ubuntu or Debian, you need to install it apart with `sudo apt-get install python3-virtualenv`.
+
+Then, run `.venv/python3 generate.py path/to/sentences.csv path/to/links.csv` to produce the JSONL and TSV files.
+
+The script performs a basic tokenization for Chinese (Mandarin) and Japanese, and doesn't handle morphology or
+lemmatization yet.
