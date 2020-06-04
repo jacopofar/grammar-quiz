@@ -52,7 +52,7 @@ def tokenize(text: str, lang: str):
     if lang in icu_words:
         icu_words[lang].setText(text)
         boundaries = list(icu_words[lang])
-        return [text[i:j] for i, j in zip(boundaries, boundaries[1:])]
+        return [text[i:j] for i, j in zip([0] + boundaries, boundaries)]
 
     # any other language, just use spaces
     return text.split()
