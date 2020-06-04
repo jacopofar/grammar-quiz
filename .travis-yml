@@ -1,9 +1,11 @@
-sudo: false
 language: python
 python:
-    - '3.6'
-node_js: 10
+  - '3.6'
+node_js:
+  - 12
 # command to install dependencies
-install: "make local-install"
+install:
+  - apt-get install node
+  - make local-install
 # command to run tests
 script: make test-all
