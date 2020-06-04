@@ -1,6 +1,8 @@
 # grammar-quiz
 Online cloze deletion tool focused on grammar
 
+[![Build Status](https://travis-ci.org/jacopofar/grammar-quiz.svg?branch=master)](https://travis-ci.org/jacopofar/grammar-quiz)
+
 This is a project for the [Kodoeba event](https://blog.tatoeba.org/2020/05/announcing-kodoeba-1.html) organized
 by Tatoeba.
 
