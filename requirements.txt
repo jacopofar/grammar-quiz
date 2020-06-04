@@ -1,2 +1,4 @@
 fastapi[all]==0.55.1
 uvicorn==0.11.5
+# for testing
+pytest==5.4.3

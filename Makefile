@@ -21,3 +21,6 @@ local-run-frontend:
 test-frontend:
 	cd frontend && \
 		CI=true yarn test
+
+test-backend:
+	backend/.venv/bin/python3 -m pytest tests
