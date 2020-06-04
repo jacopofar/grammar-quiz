@@ -5,7 +5,14 @@ import json
 from random import randint
 
 from chop.mmseg import Tokenizer as MMSEGTokenizer
+import icu
 import tinysegmenter
+
+icu_words = {
+    lang: icu.BreakIterator.createWordInstance(icu.Locale(lang))
+    for lang in ['tha', 'lao', 'khm', 'mya']
+    }
+
 
 segmenter_cmn = MMSEGTokenizer()
 segmenter_jpn = tinysegmenter.TinySegmenter()
@@ -41,6 +48,12 @@ def tokenize(text: str, lang: str):
     # Japanese? use tinysegmenter
     if lang == 'jpn':
         return segmenter_jpn.tokenize(text)
+    # Languages covered by ICU?
+    if lang in icu_words:
+        icu_words[lang].setText(text)
+        boundaries = list(icu_words[lang])
+        return [text[i:j] for i, j in zip(boundaries, boundaries[1:])]
+
     # any other language, just use spaces
     return text.split()
 
