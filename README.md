@@ -11,7 +11,8 @@ This project will be completely FOSS and the produced data will be published whe
 (e.g. user account data).
 
 
-# How to run
+## How to run
+
 First you need to import the Tatoeba data into a local DB. Look at the `scripts/` folder for the various steps and
 relative instructions.
 
@@ -22,7 +23,9 @@ With `make local-run-backend` the backend will listen at port 8000 and reload on
 `make local-run-frontend` will start the frontend server at port 3000, forwarding API calls to the port 8000 to
 make developing as simple and quick as possible.
 
-To run in
+## Test
+
+To test use `make local-install` and then `make test-all`
 
 ## Roadmap
 
