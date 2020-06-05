@@ -1,15 +1,19 @@
 import logging
 from pathlib import Path
-from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
 
+from backend.dbutil import get_conn, attach_db_cycle
+
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
+
 app = FastAPI()
+attach_db_cycle(app)
+
 # TODO later use a reverse proxy to serve static files
 # this works perfectly for now
 app.mount(
@@ -29,6 +33,11 @@ def index():
 
 
 @app.get("/current_time")
-def current_time():
+async def current_time():
     """Return current time, as an example."""
-    return datetime.now().isoformat()
+    async with get_conn() as conn:
+        now = await conn.fetchrow("""
+            SELECT date_trunc('second', current_timestamp) AS now_ts
+            """)
+        return now['now_ts']
+

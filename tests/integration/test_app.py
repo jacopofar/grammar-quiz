@@ -6,10 +6,11 @@ from backend.app import app
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    with TestClient(app) as client:
+        yield client
 
 
-def test_read_main(client):
+def test_db_main(client):
     response = client.get("/current_time")
-    assert len(response.json()) == len('2020-06-04T19:13:50.905232')
+    assert len(response.json()) == len('2020-06-05T06:27:18+00:00')
     assert response.text[5] == '-'
