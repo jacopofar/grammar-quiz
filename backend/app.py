@@ -55,7 +55,7 @@ async def draw_cards(qr: QuizRequest):
     # fake constant user id to simplify multi-user later
     current_user = 1
     # TODO would be nice to move queries to .sql files referred by name
-    # and have a concise for that
+    # and have a concise helper for that.
     async with get_conn() as conn:
         cards = await conn.fetch(
             """
