@@ -1,3 +1,4 @@
+.PHONY: local-install
 local-install:
 	cd frontend && \
 		yarn install
@@ -5,40 +6,59 @@ local-install:
 		python3 -m venv .venv
 	backend/.venv/bin/python3 -m pip install -r requirements.txt
 
-.PHONY: local-install
 
-
+.PHONY: build-static-frontend
 build-static-frontend:
 	cd frontend && \
 		yarn install && yarn build
 	rm -rf backend/static
 	mv frontend/build backend/static
 
-.PHONY: build-static-frontend
 
+.PHONY: local-run-backend
 local-run-backend:
 	backend/.venv/bin/uvicorn backend.app:app --reload
 
-.PHONY: local-run-backend
 
-
+.PHONY: local-run-frontend
 local-run-frontend:
 	cd frontend && \
 		yarn start
 
-.PHONY: local-run-frontend
 
+.PHONY: test-frontend
 test-frontend:
 	cd frontend && \
 		CI=true yarn test
 
-.PHONY: test-frontend
 
+.PHONY: test-backend
 test-backend:
 	backend/.venv/bin/python3 -m pytest tests
 
-.PHONY: test-backend
 
-test-all: test-backend test-frontend
+# this abomination really should be done better. How?
+# pg_virtualenv is not cross platform, travis has its own working solution
+# everything else require manual operations...
+# still would be nice to differentiate tests and run only the "destructive" ones here
+.PHONY: create-local-tests-postgres
+create-local-test-postgres:
+	docker run --name grammar-quiz-test-db -p 15432:5432 -e POSTGRES_PASSWORD=testpassword -d postgres:12
+	# AWFUL, how to wait for the service to be up?  :(
+	sleep 10
+	docker exec grammar-quiz-test-db sh -c "echo 'CREATE DATABASE grammarquiz;' |psql -U postgres"
+	# create empty schema
+	docker cp scripts/populate_db/schema.sql grammar-quiz-test-db:/schema.sql
+	docker exec grammar-quiz-test-db sh -c "psql -U postgres -f /schema.sql grammarquiz"
+	# insert test data
+	docker cp tests/database_content.sql grammar-quiz-test-db:/database_content.sql
+	docker exec grammar-quiz-test-db sh -c "psql -U postgres -q -f /database_content.sql grammarquiz"
+	# now use PG_CONN_STR=postgresql://postgres:testpassword@localhost:15432/grammarquiz
+
+.PHONY: destroy-local-test-postgres
+destroy-local-test-postgres:
+	docker kill grammar-quiz-test-db
+	docker rm grammar-quiz-test-db
 
 .PHONY: test-all
+test-all: test-backend test-frontend
