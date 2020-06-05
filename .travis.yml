@@ -1,10 +1,20 @@
 language: python
 python:
-  - '3.6'
+  - '3.7'
 node_js:
   - 12
-# command to install dependencies
+services:
+  - postgresql
+
+before_script:
+  - psql -c "CREATE USER testuser WITH PASSWORD 'secret' LOGIN;" -U postgres
+  - psql -c "CREATE DATABASE grammarquiz OWNER testuser;" -U postgres
+  - psql -U testuser -f scripts/populate_db/schema.sql grammarquiz
+  - psql -U testuser -q -f tests/database_content.sql grammarquiz
+
+env:
+  - PG_CONN_STR="postgresql://testuser:secret@localhost:5432/grammarquiz"
+
 install:
   - make local-install
-# command to run tests
 script: make test-all

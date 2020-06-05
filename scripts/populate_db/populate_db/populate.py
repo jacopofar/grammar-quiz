@@ -17,7 +17,7 @@ async def store_language_codes(conn: Connection) -> Dict:
     async with conn.transaction():
         for i, (lang_code, lang_name) in enumerate(ISO_693_3.items()):
             await conn.execute(
-                """INSERT INTO languages(
+                """INSERT INTO language(
                     id,
                     iso693_3,
                     name)
@@ -62,7 +62,7 @@ async def main(jsonl_file: str):
                 #     pending
                 # )
                 await conn.copy_records_to_table(
-                    'cards',
+                    'card',
                     records=pending,
                 )
             pending = []
@@ -70,7 +70,7 @@ async def main(jsonl_file: str):
     print('Almost done, writing the remaining entries...')
     async with conn.transaction():
         await conn.copy_records_to_table(
-                        'cards',
+                        'card',
                         records=pending,
                     )
     print(f'Done!')

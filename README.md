@@ -18,7 +18,7 @@ This project will be completely FOSS and the produced data will be published whe
 First you need to import the Tatoeba data into a local DB. Look at the `scripts/` folder for the various steps and
 relative instructions.
 
-To run locally you need Python 3.6 or later, node.js 10.x or later, the yarn package manager and make.
+To run locally you need Python 3.7 or later, node.js 10.x or later, the yarn package manager and make.
 
 Use `make local-install` to install the dependencies for the frontend and backend.
 With `make local-run-backend` the backend will listen at port 8000 and reload on change, then
