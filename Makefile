@@ -46,7 +46,8 @@ create-local-test-postgres:
 	docker run --name grammar-quiz-test-db -p 15432:5432 -e POSTGRES_PASSWORD=testpassword -d postgres:12
 	# AWFUL, how to wait for the service to be up?  :(
 	sleep 10
-	docker exec grammar-quiz-test-db sh -c "echo 'CREATE DATABASE grammarquiz;' |psql -U postgres"
+	docker exec grammar-quiz-test-db sh -c "echo 'CREATE USER foo WITH PASSWORD '\''secret'\'' LOGIN;' |psql -U postgres"
+	docker exec grammar-quiz-test-db sh -c "echo 'CREATE DATABASE grammarquiz OWNER foo;' |psql -U postgres"
 	# create empty schema
 	docker cp scripts/populate_db/schema.sql grammar-quiz-test-db:/schema.sql
 	docker exec grammar-quiz-test-db sh -c "psql -U postgres -f /schema.sql grammarquiz"
