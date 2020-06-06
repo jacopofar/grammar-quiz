@@ -18,10 +18,10 @@ segmenter_cmn = MMSEGTokenizer()
 segmenter_jpn = tinysegmenter.TinySegmenter()
 
 # how often to add an extra cloze
-ANOTHER_CLOZE_FACTOR = 50
+ANOTHER_CLOZE_FACTOR = 4
 
 # how often to add a fake cloze that doesn't replace anything
-EMPTY_CLOZE_FACTOR = 50
+EMPTY_CLOZE_FACTOR = 20
 
 # how many most-common words will be replaced by clozes
 WORD_MIN_RANK = 1000
