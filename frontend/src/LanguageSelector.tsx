@@ -40,39 +40,43 @@ function LanguageSelector(props: Props) {
 
   return (
     <Form>
+      <Form.Field>
+      <label>Language to exercise</label>
       <Dropdown
-        placeholder='Known languages'
+        placeholder='Choose language to exercise'
         fluid
-        multiple
         search
         selection
         clearable
         options={languages
-          .filter(l => l.iso693_3 !== tgtLang)
+          .filter(l => !srcLangs?.includes(l.iso693_3))
           .map(l => ({key: l.iso693_3, text: l.name, value: l.iso693_3}))}
-        onChange={handleSourceChange}
+        onChange={handleTargetChange}
       />
-      <Form.Field>
-        <Dropdown
-          placeholder='Target language'
-          fluid
-          search
-          selection
-          clearable
-          options={languages
-            .filter(l => !srcLangs?.includes(l.iso693_3))
-            .map(l => ({key: l.iso693_3, text: l.name, value: l.iso693_3}))}
-          onChange={handleTargetChange}
-        />
-        {errorMsg &&
-          <Label basic color='red' pointing>
-            {errorMsg}
-          </Label>
-        }
 
-      </Form.Field>
-      <Button primary onClick={sendSelection}>Choose languages</Button>
-    </Form>
+    </Form.Field>
+    <Form.Field>
+      <label>Known languages</label>
+    <Dropdown
+      placeholder='Choose known languages...'
+      fluid
+      multiple
+      search
+      selection
+      clearable
+      options={languages
+        .filter(l => l.iso693_3 !== tgtLang)
+        .map(l => ({key: l.iso693_3, text: l.name, value: l.iso693_3}))}
+      onChange={handleSourceChange}
+    />
+    </Form.Field>
+    <Button primary onClick={sendSelection}>Choose languages</Button>
+    {errorMsg &&
+        <Label prompt color="red">
+          {errorMsg}
+        </Label>
+      }
+  </Form>
   );
 }
 

@@ -3,7 +3,6 @@ import { Segment } from 'semantic-ui-react'
 
 import LanguageSelector from './LanguageSelector'
 import Quiz from './Quiz'
-import './App.css';
 
 function App() {
   const [sourceTargetLanguage, setSourceTargetLanguage] = useState<{src: string[], tgt: string}>()
