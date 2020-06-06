@@ -17,7 +17,7 @@ function LanguageSelector(props: Props) {
         const mods = (await axios.get('/languages')).data
         setLanguages(mods)
     }
-    loadLanguageList();
+    loadLanguageList()
   }, [])
 
   const handleSourceChange = (e: any, data: DropdownProps ) => {
@@ -77,7 +77,7 @@ function LanguageSelector(props: Props) {
         </Label>
       }
   </Form>
-  );
+  )
 }
 
-export default LanguageSelector;
+export default LanguageSelector

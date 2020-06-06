@@ -1,11 +1,28 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Segment } from 'semantic-ui-react'
+import axios from 'axios'
 
 import LanguageSelector from './LanguageSelector'
-import Quiz from './Quiz'
+import Quiz, { Card } from './Quiz'
 
 function App() {
   const [sourceTargetLanguage, setSourceTargetLanguage] = useState<{src: string[], tgt: string}>()
+  const [quizCards, setQuizCards] = useState<Card[]>()
+
+  useEffect(() => {
+    if (typeof sourceTargetLanguage === 'undefined'){
+      return
+    }
+    async function getQuizCards() {
+      const cards = (await axios.post('/draw_cards', {
+        target_lang: sourceTargetLanguage?.tgt,
+        source_langs: sourceTargetLanguage?.src
+      })).data
+
+      setQuizCards(cards)
+    }
+    getQuizCards()
+  }, [sourceTargetLanguage])
 
   return (
     <div className="App">
@@ -19,11 +36,13 @@ function App() {
             />
           </Segment>
         }
-
-        <p>Insert here quiz once languages are selected. The Quiz will have props for the initial N questions and a prop for the answer callback</p>
-         <Quiz />
+        {quizCards ?
+           <Quiz
+            cards={quizCards}/>
+          : null
+        }
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
