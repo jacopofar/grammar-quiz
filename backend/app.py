@@ -34,14 +34,13 @@ def index():
     return RedirectResponse(url="/app")
 
 
-@app.get("/current_time")
-async def current_time():
-    """Return current time, as an example."""
+@app.get("/languages")
+async def get_languages():
+    """Return list of all available languages."""
     async with get_conn() as conn:
-        now = await conn.fetchrow("""
-            SELECT date_trunc('second', current_timestamp) AS now_ts
+        return await conn.fetch("""
+            SELECT iso693_3, name FROM language
             """)
-        return now['now_ts']
 
 
 class QuizRequest(BaseModel):

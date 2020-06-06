@@ -1,22 +1,28 @@
 import React, { useState } from 'react'
-import axios from 'axios'
-import { Button } from 'semantic-ui-react'
+import { Segment } from 'semantic-ui-react'
 
+import LanguageSelector from './LanguageSelector'
+import Quiz from './Quiz'
 import './App.css';
 
 function App() {
-  const [time, setTime] = useState<string>()
-  const getTime = async () => {
-    const time = await axios.get('/current_time')
-    setTime(time.data)
-  }
+  const [sourceTargetLanguage, setSourceTargetLanguage] = useState<{src: string[], tgt: string}>()
+
   return (
     <div className="App">
-        <p>
+        <h2>
              Welcome to grammar-quiz!
-        </p>
-        <Button primary onClick={getTime}>Click me</Button>
-         <p>{time}</p>
+        </h2>
+        {sourceTargetLanguage ? null :
+          <Segment>
+            <LanguageSelector
+              onSelected={(src, tgt) => setSourceTargetLanguage({src, tgt})}
+            />
+          </Segment>
+        }
+
+        <p>Insert here quiz once languages are selected. The Quiz will have props for the initial N questions and a prop for the answer callback</p>
+         <Quiz />
     </div>
   );
 }

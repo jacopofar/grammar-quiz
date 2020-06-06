@@ -10,10 +10,13 @@ def client():
         yield client
 
 
-def test_db_main(client):
-    response = client.get("/current_time")
-    assert len(response.json()) == len('2020-06-05T06:27:18+00:00')
-    assert response.text[5] == '-'
+def test_get_languages(client):
+    languages = client.get("/languages").json()
+    assert len(languages) > 0
+    assert 'iso693_3' in languages[0]
+    # the codes are always 3 letters
+    assert len(languages[0]['iso693_3']) == 3
+    assert 'name' in languages[0]
 
 
 def test_draw_cards(client):
