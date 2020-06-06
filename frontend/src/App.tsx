@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Segment } from 'semantic-ui-react'
+import { Grid, Segment } from 'semantic-ui-react'
 import axios from 'axios'
 
 import LanguageSelector from './LanguageSelector'
@@ -25,9 +25,11 @@ function App() {
   }, [sourceTargetLanguage])
 
   return (
-    <div className="App">
+    <Grid>
+      <Grid.Column width={2} padded></Grid.Column>
+      <Grid.Column width={12} padded>
         <h2>
-             Welcome to grammar-quiz!
+             Grammar quiz, test your grammar with sentences from Tatoeba
         </h2>
         {sourceTargetLanguage ? null :
           <Segment>
@@ -41,7 +43,10 @@ function App() {
             cards={quizCards}/>
           : null
         }
-    </div>
+      </Grid.Column>
+      <Grid.Column width={2} padded></Grid.Column>
+
+    </Grid>
   )
 }
 
