@@ -44,8 +44,8 @@ test-backend:
 .PHONY: create-local-tests-postgres
 create-local-test-postgres:
 	docker run --name grammar-quiz-test-db -p 15432:5432 -e POSTGRES_PASSWORD=testpassword -d postgres:12
-	# AWFUL, how to wait for the service to be up?  :(
-	sleep 10
+	# wait for the DB to be up
+	docker exec grammar-quiz-test-db sh -c 'until pg_isready; do echo "Waiting for the DB to be up..."; sleep 2; done'
 	docker exec grammar-quiz-test-db sh -c "echo 'CREATE USER foo WITH PASSWORD '\''secret'\'' LOGIN;' |psql -U postgres"
 	docker exec grammar-quiz-test-db sh -c "echo 'CREATE DATABASE grammarquiz OWNER foo;' |psql -U postgres"
 	# create empty schema
