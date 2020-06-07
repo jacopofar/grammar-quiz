@@ -25,9 +25,9 @@ function App() {
   }, [sourceTargetLanguage])
 
   return (
-    <Grid>
-      <Grid.Column width={2} padded></Grid.Column>
-      <Grid.Column width={12} padded>
+    <Grid padded>
+      <Grid.Column width={2}></Grid.Column>
+      <Grid.Column width={12}>
         <h2>
              Grammar quiz, test your grammar with sentences from Tatoeba
         </h2>
@@ -44,7 +44,7 @@ function App() {
           : null
         }
       </Grid.Column>
-      <Grid.Column width={2} padded></Grid.Column>
+      <Grid.Column width={2}></Grid.Column>
 
     </Grid>
   )
