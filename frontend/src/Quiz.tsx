@@ -19,11 +19,9 @@ function Quiz(props: Props) {
 
   return (
     <div>
-        <p>
-            <ClozeCard
-              card={props.cards[cardIdx]}
-            />
-        </p>
+      <ClozeCard
+        card={props.cards[cardIdx]}
+      />
     </div>
   )
 }
