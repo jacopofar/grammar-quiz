@@ -4,7 +4,6 @@ import axios from 'axios'
 
 import LanguageSelector from './LanguageSelector'
 import Quiz, { Card } from './Quiz'
-import ClozeCard from './ClozeCard'
 
 function App() {
   const [sourceTargetLanguage, setSourceTargetLanguage] = useState<{src: string[], tgt: string}>()

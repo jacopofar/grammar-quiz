@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Divider, Form, Header, Icon, Input, Label, Segment } from 'semantic-ui-react'
 import update from 'immutability-helper';
 
@@ -51,24 +51,20 @@ function ClozeField(props: ClozeFieldProps) {
       />
       {props.showCorrect &&
         <>{(expectedAnswer === answer ?
-          <Label basic color='green' pointing='left'>
-            <Icon name='check' />
-          </Label>
+          <Label basic color='green' pointing='left'><Icon name='check' /></Label>
         :
-          <Label basic color='red' pointing='left'>
-            {expectedAnswer}
-          </Label>
+          <Label basic color='red' pointing='left'>{expectedAnswer}<span> </span></Label>
           )}
-          <span> </span>
+
           </>
       }
-
       </span>
   )
 }
 
 interface CardProps {
-  card: Card
+  card: Card,
+  onAnswer: (expected: string[], given: string []) => void
 }
 
 function ClozeCard(props: CardProps) {
@@ -76,8 +72,14 @@ function ClozeCard(props: CardProps) {
   const [answers, setAnswers] = useState<string[]>(clozes.map(e => ''))
   const [showAnswers, setShowAnswers] = useState<boolean>(false)
 
+  useEffect(() => {
+    // when the changes, hide the tips and reset the previous answers
+    setShowAnswers(false)
+  }, [props.card])
+
   const submitAnswers = () => {
     setShowAnswers(true)
+    props.onAnswer(clozes.map(answerFromCloze), answers)
   }
 
   return (
@@ -87,17 +89,18 @@ function ClozeCard(props: CardProps) {
         <Header size='large'>{props.card.from_txt}</Header>
         <Divider horizontal>{props.card.to_language}</Divider>
         <Form onSubmit={submitAnswers}>
-          <Header size='large'>{props.card.to_tokens.map((e) => {
+          <Header size='medium'>{props.card.to_tokens.map((e, i) => {
             const idx=clozes.indexOf(e)
             if (idx !== -1) {
               return <ClozeField
+                  key={`${props.card.to_id}-${idx}`}
                   clozeContent={e}
                   showCorrect={showAnswers}
                   onAnswer={(ans) => setAnswers(update(answers, {[idx]: {$set: ans}}))}
                 />
             }
             else {
-              return <span>{e} </span>
+              return <span key={i}>{e} </span>
             }
           })}
           </Header>
