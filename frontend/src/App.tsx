@@ -1,24 +1,53 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { Grid, Segment } from 'semantic-ui-react'
 import axios from 'axios'
-import { Button } from 'semantic-ui-react'
 
-import './App.css';
+import LanguageSelector from './LanguageSelector'
+import Quiz, { Card } from './Quiz'
 
 function App() {
-  const [time, setTime] = useState<string>()
-  const getTime = async () => {
-    const time = await axios.get('/current_time')
-    setTime(time.data)
-  }
+  const [sourceTargetLanguage, setSourceTargetLanguage] = useState<{src: string[], tgt: string}>()
+  const [quizCards, setQuizCards] = useState<Card[]>()
+
+  useEffect(() => {
+    if (typeof sourceTargetLanguage === 'undefined'){
+      return
+    }
+    async function getQuizCards() {
+      const cards = (await axios.post('/draw_cards', {
+        target_lang: sourceTargetLanguage?.tgt,
+        source_langs: sourceTargetLanguage?.src
+      })).data
+
+      setQuizCards(cards)
+    }
+    getQuizCards()
+  }, [sourceTargetLanguage])
+
   return (
-    <div className="App">
-        <p>
-             Welcome to grammar-quiz!
-        </p>
-        <Button primary onClick={getTime}>Click me</Button>
-         <p>{time}</p>
-    </div>
-  );
+    <Grid padded>
+      <Grid.Column width={2}></Grid.Column>
+      <Grid.Column width={12}>
+        <h2>
+             Grammar quiz, test your grammar with sentences from Tatoeba
+        </h2>
+        {sourceTargetLanguage ? null :
+          <Segment>
+            <LanguageSelector
+              onSelected={(src, tgt) => setSourceTargetLanguage({src, tgt})}
+            />
+          </Segment>
+        }
+        {quizCards ?
+           <Quiz
+            cards={quizCards}/>
+          : null
+        }
+      </Grid.Column>
+      <Grid.Column width={2}></Grid.Column>
+
+    </Grid>
+  )
 }
 
-export default App;
+export default App

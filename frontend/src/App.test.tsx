@@ -1,9 +1,10 @@
-import React from 'react';
-import { render } from '@testing-library/react';
-import App from './App';
+import React from 'react'
+import { render } from '@testing-library/react'
+import App from './App'
 
-test('renders learn react link', () => {
-  const { getByText } = render(<App />);
-  const welcomeText = getByText(/grammar-quiz/i);
-  expect(welcomeText).toBeInTheDocument();
-});
+// not really a meaningful test :( But TDD in this context seems unlikely
+test('renders the title', () => {
+  const { getByText } = render(<App />)
+  const welcomeText = getByText(/Grammar quiz/i)
+  expect(welcomeText).toBeInTheDocument()
+})

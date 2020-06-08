@@ -27,3 +27,6 @@ INSERT INTO public.card (from_lang, to_lang, from_id, to_id, from_txt, original_
 INSERT INTO public.card (from_lang, to_lang, from_id, to_id, from_txt, original_txt, to_tokens) VALUES (1, 4, 15, 16, 'a rdfg c', 'b tff c', '{"bf","{{c1::c}}","{{c2::ee}}"}');
 INSERT INTO public.card (from_lang, to_lang, from_id, to_id, from_txt, original_txt, to_tokens) VALUES (1, 4, 17, 18, 'asdg r c', 'b t cw', '{"b","tee","{{c1::c}}"}');
 INSERT INTO public.card (from_lang, to_lang, from_id, to_id, from_txt, original_txt, to_tokens) VALUES (1, 4, 19, 20, 'a r cdsfg', 'be te c', '{"b","t","{{c1::c}}"}');
+
+--
+INSERT INTO account(id) VALUES(1);

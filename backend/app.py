@@ -34,14 +34,13 @@ def index():
     return RedirectResponse(url="/app")
 
 
-@app.get("/current_time")
-async def current_time():
-    """Return current time, as an example."""
+@app.get("/languages")
+async def get_languages():
+    """Return list of all available languages."""
     async with get_conn() as conn:
-        now = await conn.fetchrow("""
-            SELECT date_trunc('second', current_timestamp) AS now_ts
+        return await conn.fetch("""
+            SELECT iso693_3, name FROM language
             """)
-        return now['now_ts']
 
 
 class QuizRequest(BaseModel):
@@ -85,3 +84,61 @@ async def draw_cards(qr: QuizRequest):
             qr.source_langs,
             current_user)
         return cards
+
+
+class CardAnswer(BaseModel):
+    from_id: int
+    to_id: int
+    expected_answers: List[str]
+    given_answers:  List[str]
+    correct: bool
+
+
+@app.post("/register_answer")
+async def register_answer(ans: CardAnswer):
+    """Register the answer an user gave to a card.
+
+    This is used both to decide whether and when to show the card again and to
+    collect information about which words and sentences are hard and which
+    mistakes are the most common.
+    """
+    # fake constant user id to simplify multi-user later
+    current_user = 1
+    async with get_conn() as conn:
+        await conn.execute(
+            """
+            INSERT INTO card_user_state (
+              from_id,
+              to_id,
+              account_id,
+              last_seen
+              )
+            VALUES ($1, $2, $3, current_timestamp)
+            ON CONFLICT (from_id, to_id, account_id) DO UPDATE SET
+              last_seen = current_timestamp
+            """,
+            ans.from_id,
+            ans.to_id,
+            current_user
+        )
+        await conn.execute(
+            """
+            INSERT INTO revlog (
+              from_id,
+              to_id,
+              account_id,
+              review_time,
+              answers,
+              expected_answers,
+              correct
+              )
+            VALUES ($1, $2, $3, current_timestamp, $4, $5, $6)
+            """,
+            ans.from_id,
+            ans.to_id,
+            current_user,
+            ans.given_answers,
+            ans.expected_answers,
+            ans.correct
+        )
+        return 'OK'
