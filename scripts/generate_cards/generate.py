@@ -129,6 +129,11 @@ def main_multi(sentence_file: str, link_file: str):
             # no cloze of a cloze
             if tokens[to_replace_idx].startswith('{{'):
                 continue
+            # do not put cloze after empty cloze
+            if (
+                    to_replace_idx > 0
+                    and tokens[to_replace_idx - 1].endswith('::-}}')):
+                continue
             # only the most common words
             if (normalize(tokens[to_replace_idx], to_lang)
                     not in most_commons[to_lang]):
@@ -147,11 +152,16 @@ def main_multi(sentence_file: str, link_file: str):
 
             if randint(0, EMPTY_CLOZE_FACTOR) == 0:
                 to_insert_idx = randint(0, len(tokens) - 1)
-                tokens.insert(
-                    to_insert_idx,
-                    '{{c' + str(cloze_idx) + '::-}}'
-                )
-                cloze_idx += 1
+                # do it only if there'not a cloze on the right
+                # otherwise the user has no way to know this is a fake one
+                if (
+                    to_insert_idx == len(tokens) - 1
+                        or not tokens[to_insert_idx].startswith('{{')):
+                    tokens.insert(
+                        to_insert_idx,
+                        '{{c' + str(cloze_idx) + '::-}}'
+                    )
+                    cloze_idx += 1
 
             if randint(0, ANOTHER_CLOZE_FACTOR) == 0:
                 continue
