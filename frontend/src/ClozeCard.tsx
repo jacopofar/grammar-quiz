@@ -63,7 +63,6 @@ function ClozeField(props: ClozeFieldProps) {
       <Input
         className="clozefield"
         onChange={(e) => {
-
             props.onAnswer(e.target.value)
             setAnswer(e.target.value)
           }}
@@ -96,6 +95,7 @@ function ClozeCard(props: CardProps) {
     const newClozes = props.card.toTokens.filter(t => t.startsWith('{{'))
     setClozes(newClozes)
     setAnswers(newClozes.map(e => ''))
+
   }, [props.card])
 
   const submitAnswers = () => {
@@ -109,7 +109,7 @@ function ClozeCard(props: CardProps) {
     <div>
       <Segment>
         <Divider horizontal>{props.card.fromLanguage}</Divider>
-        <Header size='large'>{props.card.fromTxt}</Header>
+        <Header size='medium'>{props.card.fromTxt}</Header>
         <Divider horizontal>{props.card.toLanguage}</Divider>
         <Form onSubmit={submitAnswers}>
           <Header size='medium'>{props.card.toTokens.map((e, i) => {

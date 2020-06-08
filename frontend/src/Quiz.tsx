@@ -18,6 +18,7 @@ type Answer = {
   fromTxt: string
   toTokens: string[]
   answers: string[]
+
 }
 
 interface Props {
@@ -34,11 +35,13 @@ function Quiz(props: Props) {
   // the answers given so far
   const [answers, setAnswers] = useState<Answer[]>([])
 
+
   const handleAnswer = (expected: string[], given: string[], allCorrect: boolean) => {
     const card =  props.cards[cardIdx]
     axios.post('/register_answer', {
       from_id: card.fromId,
       to_id: card.toId,
+
       expected_answers: expected,
       given_answers: given,
       correct: allCorrect
@@ -97,6 +100,7 @@ function Quiz(props: Props) {
       </Table>
         }
       </Segment>
+
     </div>
   )
 }
