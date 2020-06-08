@@ -85,6 +85,8 @@ def main_multi(sentence_file: str, link_file: str):
 
     most_commons = {}
     for l in langs:
+        # remove empty string, that's normalized punctuation
+        word_counters[l].pop('')
         most_commons[l] = set(
             w for w, _ in word_counters[l].most_common(WORD_MIN_RANK)
             )
