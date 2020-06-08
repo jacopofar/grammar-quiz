@@ -93,6 +93,7 @@ class CardAnswer(BaseModel):
     given_answers:  List[str]
     correct: bool
 
+
 @app.post("/register_answer")
 async def register_answer(ans: CardAnswer):
     """Register the answer an user gave to a card.
