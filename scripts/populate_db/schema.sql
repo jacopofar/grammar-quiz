@@ -32,3 +32,15 @@ CREATE TABLE card_user_state(
     PRIMARY KEY (from_id, to_id, account_id)
 );
 
+CREATE TABLE revlog (
+    from_id     INTEGER                  NOT NULL,
+    to_id       INTEGER                  NOT NULL,
+    account_id  INTEGER                  NOT NULL,
+    review_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    answers     TEXT[]                   NOT NULL,
+    correct     BOOLEAN                  NOT NULL,
+    FOREIGN KEY (from_id, to_id) REFERENCES card(from_id, to_id),
+    FOREIGN KEY (account_id) REFERENCES account,
+    PRIMARY KEY (from_id, to_id, account_id, review_time)
+);
+
