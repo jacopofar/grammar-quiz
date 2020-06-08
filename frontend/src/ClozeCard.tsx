@@ -24,8 +24,8 @@ const isAnswerOK = (expected: string, answer: string) => {
     return true
   }
   // tolerate an extra punctuation mark
-  if (/['.,?!;。、？！']/.test(answer.slice(-1))){
-    if (answer.slice(0, -1) === expected){
+  if (/['.,?!;。、？！']/.test(expected.slice(-1))){
+    if (expected.slice(0, -1) === answer){
       return true
     }
   }
@@ -85,13 +85,17 @@ interface CardProps {
 }
 
 function ClozeCard(props: CardProps) {
-  const clozes: string[] = props.card.to_tokens.filter(t => t.startsWith('{{'))
-  const [answers, setAnswers] = useState<string[]>(clozes.map(e => ''))
+  const [clozes, setClozes] = useState<string[]>(['ERROR'])
+  const [answers, setAnswers] = useState<string[]>(['ERROR'])
   const [showAnswers, setShowAnswers] = useState<boolean>(false)
 
   useEffect(() => {
     // when the changes, hide the tips and reset the previous answers
     setShowAnswers(false)
+    const newClozes = props.card.toTokens.filter(t => t.startsWith('{{'))
+    setClozes(newClozes)
+    setAnswers(newClozes.map(e => ''))
+
   }, [props.card])
 
   const submitAnswers = () => {
@@ -104,15 +108,15 @@ function ClozeCard(props: CardProps) {
   return (
     <div>
       <Segment>
-        <Divider horizontal>{props.card.from_language}</Divider>
-        <Header size='large'>{props.card.from_txt}</Header>
-        <Divider horizontal>{props.card.to_language}</Divider>
+        <Divider horizontal>{props.card.fromLanguage}</Divider>
+        <Header size='medium'>{props.card.fromTxt}</Header>
+        <Divider horizontal>{props.card.toLanguage}</Divider>
         <Form onSubmit={submitAnswers}>
-          <Header size='medium'>{props.card.to_tokens.map((e, i) => {
+          <Header size='medium'>{props.card.toTokens.map((e, i) => {
             const idx=clozes.indexOf(e)
             if (idx !== -1) {
               return <ClozeField
-                  key={`${props.card.to_id}-${idx}`}
+                  key={`${props.card.toId}-${idx}`}
                   clozeContent={e}
                   showCorrect={showAnswers}
                   onAnswer={(ans) => setAnswers(update(answers, {[idx]: {$set: ans}}))}
