@@ -19,7 +19,14 @@ function App() {
         source_langs: sourceTargetLanguage?.src
       })).data
 
-      setQuizCards(cards)
+      setQuizCards(cards.map((c: any) => ({
+        fromId: c.from_id,
+        fromLanguage: c.from_language,
+        fromTxt: c.from_txt,
+        toId: c.to_id,
+        toLanguage: c.to_language,
+        toTokens: c.to_tokens
+      })))
     }
     getQuizCards()
   }, [sourceTargetLanguage])
