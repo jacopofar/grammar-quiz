@@ -69,8 +69,7 @@ function ClozeField(props: ClozeFieldProps) {
         :
           <Label basic color='red' pointing='left'>{expectedAnswer}<span> </span></Label>
           )}
-
-          </>
+        </>
       }
       </span>
   )
