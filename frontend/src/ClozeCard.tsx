@@ -18,6 +18,20 @@ const answerFromCloze = (cloze: string) => {
     return match[1]
   }
 }
+
+const isAnswerOK = (answer: string, expected: string) => {
+  if (answer === expected) {
+    return true
+  }
+  // tolerate an extra punctuation mark
+  if (/['.,?!;。、？！']/.test(answer.slice(-1))){
+    if (answer.slice(0, -1) === expected){
+      return true
+    }
+  }
+  return false
+}
+
 {/* Example ClozeCard
        <ClozeCard
         card={{
@@ -50,7 +64,7 @@ function ClozeField(props: ClozeFieldProps) {
           }}
       />
       {props.showCorrect &&
-        <>{(expectedAnswer === answer ?
+        <>{(isAnswerOK(expectedAnswer, answer) ?
           <Label basic color='green' pointing='left'><Icon name='check' /></Label>
         :
           <Label basic color='red' pointing='left'>{expectedAnswer}<span> </span></Label>

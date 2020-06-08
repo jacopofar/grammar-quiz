@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Button, Icon, Segment } from 'semantic-ui-react'
+import axios from 'axios'
 
 import ClozeCard from './ClozeCard'
 
@@ -21,19 +22,27 @@ function Quiz(props: Props) {
   // is the user ready to go to the next card?
   const [readyToContinue, setReadyToContinue] = useState<boolean>(false)
 
+  const handleAnswer = (expected: string[], given: string[]) => {
+    const card =  props.cards[cardIdx]
+    axios.post('/register_answer', {
+      from_id: card.from_id,
+      to_id: card.to_id,
+      expected_answers: expected,
+      given_answers: given
+    })
+    // TODO here should also keep track of the answers for an end summary
+    setReadyToContinue(true)
+  }
+
   return (
     <div>
-      <p>Sentence {cardIdx + 1} of {props.cards.length}</p>
       <ClozeCard
         card={props.cards[cardIdx]}
-        onAnswer={(expected, given) => {
-          // TODO here send the result to the server, and keep track of it for the end summary
-          setReadyToContinue(true)
-          console.log({expected, given})
-        }}
+        onAnswer={handleAnswer}
       />
-      {readyToContinue &&
-        <Segment>
+      <Segment>
+      <p>Sentence {cardIdx + 1} of {props.cards.length}</p>
+        {readyToContinue &&
           <Button
             primary
             onClick={() => {
@@ -42,8 +51,8 @@ function Quiz(props: Props) {
               setReadyToContinue(false)
             }}
           > Next card <Icon name='angle right' /></Button>
-        </Segment>
-      }
+        }
+      </Segment>
 
     </div>
   )
