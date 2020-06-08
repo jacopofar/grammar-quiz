@@ -84,3 +84,34 @@ async def draw_cards(qr: QuizRequest):
             qr.source_langs,
             current_user)
         return cards
+
+
+class CardAnswer(BaseModel):
+    from_id: int
+    to_id: int
+    expected_answers: List[str]
+    given_answers:  List[str]
+
+
+@app.post("/register_answer")
+async def register_answer(ans: CardAnswer):
+    # fake constant user id to simplify multi-user later
+    current_user = 1
+    async with get_conn() as conn:
+        await conn.execute(
+            """
+            INSERT INTO card_user_state (
+              from_id,
+              to_id,
+              account_id,
+              last_seen
+              )
+            VALUES ($1, $2, $3, current_timestamp)
+            ON CONFLICT (from_id, to_id, account_id) DO UPDATE SET
+              last_seen = current_timestamp
+            """,
+            ans.from_id,
+            ans.to_id,
+            current_user
+        )
+        return 'OK'
