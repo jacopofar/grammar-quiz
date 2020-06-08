@@ -19,7 +19,7 @@ const answerFromCloze = (cloze: string) => {
   }
 }
 
-const isAnswerOK = (answer: string, expected: string) => {
+const isAnswerOK = (expected: string, answer: string) => {
   if (answer === expected) {
     return true
   }
@@ -28,6 +28,10 @@ const isAnswerOK = (answer: string, expected: string) => {
     if (answer.slice(0, -1) === expected){
       return true
     }
+  }
+  // tolerate empty cloze as space
+  if (expected === '-' && answer === ''){
+    return true
   }
   return false
 }
@@ -77,7 +81,7 @@ function ClozeField(props: ClozeFieldProps) {
 
 interface CardProps {
   card: Card,
-  onAnswer: (expected: string[], given: string []) => void
+  onAnswer: (expected: string[], given: string [], allCorrect: boolean) => void
 }
 
 function ClozeCard(props: CardProps) {
@@ -92,7 +96,9 @@ function ClozeCard(props: CardProps) {
 
   const submitAnswers = () => {
     setShowAnswers(true)
-    props.onAnswer(clozes.map(answerFromCloze), answers)
+    props.onAnswer(clozes.map(answerFromCloze), answers, answers.filter((a, i) => {
+      return !isAnswerOK(answerFromCloze(clozes[i]), a)
+    }).length === 0)
   }
 
   return (

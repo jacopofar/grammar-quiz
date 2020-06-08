@@ -22,13 +22,14 @@ function Quiz(props: Props) {
   // is the user ready to go to the next card?
   const [readyToContinue, setReadyToContinue] = useState<boolean>(false)
 
-  const handleAnswer = (expected: string[], given: string[]) => {
+  const handleAnswer = (expected: string[], given: string[], allCorrect: boolean) => {
     const card =  props.cards[cardIdx]
     axios.post('/register_answer', {
       from_id: card.from_id,
       to_id: card.to_id,
       expected_answers: expected,
-      given_answers: given
+      given_answers: given,
+      correct: allCorrect
     })
     // TODO here should also keep track of the answers for an end summary
     setReadyToContinue(true)
