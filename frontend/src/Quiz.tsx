@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Segment, Table } from 'semantic-ui-react'
+import React, { useEffect, useState } from 'react'
+import { Header, Segment, Table } from 'semantic-ui-react'
 import axios from 'axios'
 import update from 'immutability-helper';
 
@@ -81,26 +81,28 @@ function Quiz(props: Props) {
   }
   else{
     return(
-      <Table celled>
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell>Source sentence</Table.HeaderCell>
-                  <Table.HeaderCell>Target sentence</Table.HeaderCell>
-                  <Table.HeaderCell>Answers</Table.HeaderCell>
+      <Segment>
+        <Header>Test results</Header>
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>Source sentence</Table.HeaderCell>
+              <Table.HeaderCell>Target sentence</Table.HeaderCell>
+              <Table.HeaderCell>Answers</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
 
-                </Table.Row>
-              </Table.Header>
-
-            <Table.Body>
-              {answers.map(ans =>
-              <Table.Row>
-                <Table.Cell>{ans.fromTxt}</Table.Cell>
-                <Table.Cell>{ans.toTokens.join(' ')}</Table.Cell>
-                <Table.Cell>{ans.answers.join(', ')}</Table.Cell>
-              </Table.Row>
-              )}
-            </Table.Body>
-          </Table>
+          <Table.Body>
+            {answers.map(ans =>
+            <Table.Row>
+              <Table.Cell>{ans.fromTxt}</Table.Cell>
+              <Table.Cell>{ans.toTokens.join(' ')}</Table.Cell>
+              <Table.Cell>{ans.answers.join(', ')}</Table.Cell>
+            </Table.Row>
+            )}
+          </Table.Body>
+        </Table>
+      </Segment>
     )
   }
 }
