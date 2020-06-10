@@ -58,6 +58,7 @@ def test_answer_then_redraw(client):
             expected_answers=['SOME', 'token'],
             given_answers=['some', 'token'],
             correct=True,
+            repetition=False,
         ))
     assert ok_response.json() == 'OK'
     # send a wrong answer
@@ -69,6 +70,7 @@ def test_answer_then_redraw(client):
             expected_answers=['another', 'token'],
             given_answers=['wrong', 'stuff'],
             correct=False,
+            repetition=False,
         ))
     assert ok_response.json() == 'OK'
     draw_after = client.post(
@@ -84,22 +86,3 @@ def test_answer_then_redraw(client):
     # the answers we already sent are not in the new selection
     assert (card1['from_id'], card1['to_id']) not in cards
     assert (card2['from_id'], card2['to_id']) not in cards
-# # received
-# from_language
-# 	"Italian"
-# to_language
-# 	"English"
-# from_id
-# 	4386
-# to_id
-# 	1393
-# from_txt
-# 	"Mi piacerebbe tanto andare in Giappone."
-# to_tokens
-# 	[ "I", "{{c1::wish}}", "I", "could", "go", "to", "Japan." ]
-# # to send
-# from_id: int
-#     to_id: int
-#     expected_answers: List[str]
-#     given_answers:  List[str]
-#     correct: bool

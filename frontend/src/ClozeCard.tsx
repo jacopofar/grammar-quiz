@@ -40,6 +40,7 @@ interface ClozeFieldProps {
   clozeContent: string
   showCorrect: boolean
   onAnswer: (answer: string) => void
+  autoFocus: boolean
 }
 
 
@@ -49,6 +50,7 @@ function ClozeField(props: ClozeFieldProps) {
   return (
     <span>
       <Input
+        autoFocus={props.autoFocus}
         className="clozefield"
         onChange={(e) => {
             props.onAnswer(e.target.value)
@@ -109,6 +111,7 @@ function ClozeCard(props: CardProps) {
             const idx=clozes.indexOf(e)
             if (idx !== -1) {
               return <ClozeField
+                  autoFocus={idx == 0}
                   key={`${props.card.toId}-${idx}`}
                   clozeContent={e}
                   showCorrect={showAnswers}

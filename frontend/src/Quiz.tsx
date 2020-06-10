@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Segment, Table } from 'semantic-ui-react'
+import React, { useEffect, useState } from 'react'
+import { Header, Segment, Table } from 'semantic-ui-react'
 import axios from 'axios'
 import update from 'immutability-helper';
 
@@ -12,13 +12,13 @@ export type Card = {
   toId: number
   fromTxt: string
   toTokens: string[]
+  repetition: boolean
 }
 
 type Answer = {
   fromTxt: string
   toTokens: string[]
   answers: string[]
-
 }
 
 interface Props {
@@ -30,34 +30,50 @@ function Quiz(props: Props) {
   const [cardIdx, setCardIdx] = useState<number>(0)
   // the answers given so far
   const [answers, setAnswers] = useState<Answer[]>([])
+  // the answers given so far
+  const [cards, setCards] = useState<Card[]>([])
+  useEffect(() => {
+    // ensure the state is initialized to the cards in the props when they change
+    setCards(props.cards.map((c) => c))
+    setAnswers([])
+    setCardIdx(0)
+  }, [props.cards])
 
 
   const handleAnswer = (expected: string[], given: string[], allCorrect: boolean) => {
-    const card =  props.cards[cardIdx]
+    const card =  cards[cardIdx]
     axios.post('/register_answer', {
       from_id: card.fromId,
       to_id: card.toId,
 
       expected_answers: expected,
       given_answers: given,
-      correct: allCorrect
+      correct: allCorrect,
+      repetition: card.repetition
     })
     setAnswers(update(answers, {$push: [{
-      fromTxt: props.cards[cardIdx].fromTxt,
-      toTokens: props.cards[cardIdx].toTokens,
+      fromTxt: cards[cardIdx].fromTxt,
+      toTokens: cards[cardIdx].toTokens,
       answers: given
     }]}))
+    if (!allCorrect) {
+      //not correct, put a copy back in the queue but with repetition = true
+      setCards(update(cards, {$push: [{
+        ...card,
+        repetition: true
+      }]}))
+    }
   }
-  if (cardIdx < props.cards.length){
+  if (cardIdx < cards.length){
     return(
     <div>
       <ClozeCard
-        card={props.cards[cardIdx]}
+        card={cards[cardIdx]}
         onAnswer={handleAnswer}
         onNextCard={() => {setCardIdx(cardIdx + 1)}}
       />
       <Segment>
-          <p>Sentence {cardIdx + 1} of {props.cards.length}</p>
+        <p>Sentence {cardIdx + 1} of {cards.length}, including repetitions</p>
       </Segment>
     </div>
     )
@@ -65,26 +81,28 @@ function Quiz(props: Props) {
   }
   else{
     return(
-      <Table celled>
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell>Source sentence</Table.HeaderCell>
-                  <Table.HeaderCell>Target sentence</Table.HeaderCell>
-                  <Table.HeaderCell>Answers</Table.HeaderCell>
+      <Segment>
+        <Header>Test results</Header>
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>Source sentence</Table.HeaderCell>
+              <Table.HeaderCell>Target sentence</Table.HeaderCell>
+              <Table.HeaderCell>Answers</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
 
-                </Table.Row>
-              </Table.Header>
-
-            <Table.Body>
-              {answers.map(ans =>
-              <Table.Row>
-                <Table.Cell>{ans.fromTxt}</Table.Cell>
-                <Table.Cell>{ans.toTokens.join(' ')}</Table.Cell>
-                <Table.Cell>{ans.answers.join(', ')}</Table.Cell>
-              </Table.Row>
-              )}
-            </Table.Body>
-          </Table>
+          <Table.Body>
+            {answers.map(ans =>
+            <Table.Row>
+              <Table.Cell>{ans.fromTxt}</Table.Cell>
+              <Table.Cell>{ans.toTokens.join(' ')}</Table.Cell>
+              <Table.Cell>{ans.answers.join(', ')}</Table.Cell>
+            </Table.Row>
+            )}
+          </Table.Body>
+        </Table>
+      </Segment>
     )
   }
 }

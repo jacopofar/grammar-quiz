@@ -70,7 +70,7 @@ function LanguageSelector(props: Props) {
       onChange={handleSourceChange}
     />
     </Form.Field>
-    <Button primary onClick={sendSelection}>Choose languages</Button>
+    <Button primary onClick={sendSelection}>Start learning!</Button>
     {errorMsg &&
         <Label prompt color="red">
           {errorMsg}
