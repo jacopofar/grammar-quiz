@@ -58,6 +58,7 @@ def test_answer_then_redraw(client):
             expected_answers=['SOME', 'token'],
             given_answers=['some', 'token'],
             correct=True,
+            repetition=False,
         ))
     assert ok_response.json() == 'OK'
     # send a wrong answer
@@ -69,6 +70,7 @@ def test_answer_then_redraw(client):
             expected_answers=['another', 'token'],
             given_answers=['wrong', 'stuff'],
             correct=False,
+            repetition=False,
         ))
     assert ok_response.json() == 'OK'
     draw_after = client.post(

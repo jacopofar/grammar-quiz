@@ -123,6 +123,7 @@ class CardAnswer(BaseModel):
     expected_answers: List[str]
     given_answers:  List[str]
     correct: bool
+    repetition: bool
 
 
 @app.post("/register_answer")
@@ -136,22 +137,77 @@ async def register_answer(ans: CardAnswer):
     # fake constant user id to simplify multi-user later
     current_user = 1
     async with get_conn() as conn:
-        await conn.execute(
-            """
-            INSERT INTO card_user_state (
-              from_id,
-              to_id,
-              account_id,
-              last_seen
-              )
-            VALUES ($1, $2, $3, current_timestamp)
-            ON CONFLICT (from_id, to_id, account_id) DO UPDATE SET
-              last_seen = current_timestamp
-            """,
-            ans.from_id,
-            ans.to_id,
-            current_user
-        )
+        # repetitions in the same session do not affect further the state
+        if not ans.repetition:
+            if ans.correct:
+                # not correct, roughly equivalent to "Easy" in Anki
+                # EF = EF + 0.15
+                #  if new, EF is 2.5 + 0.15 = 2.65
+                # I = 1 iif new card
+                # I = 6 iif I = 1
+                # I = round(I * EF) iif I > 1 and not new card
+                # next review in I days
+                await conn.execute(
+                    """
+                    INSERT INTO card_user_state AS cus(
+                      from_id,
+                      to_id,
+                      account_id,
+                      next_review,
+                      i_factor,
+                      ef_factor
+                      )
+                    VALUES (
+                      $1,
+                      $2,
+                      $3,
+                      current_timestamp + '1 day' :: INTERVAL,
+                      1,
+                      2.65
+                      )
+                    ON CONFLICT (from_id, to_id, account_id) DO UPDATE SET
+                      next_review = current_timestamp + ROUND(cus.i_factor) * '1 day' :: interval,
+                      i_factor = CASE
+                            WHEN cus.i_factor = 1 THEN 6
+                            ELSE round(cus.i_factor * cus.ef_factor) END,
+                      ef_factor = GREATEST(1.3, cus.ef_factor + 0.15)
+                    """,
+                    ans.from_id,
+                    ans.to_id,
+                    current_user
+                )
+            else:
+                # not correct, roughly equivalent to "Again" in Anki
+                # EF = max(1.3, EF - 0.2)
+                #  if new, EF is assumed 2.5, so will become 2.5 - 0.2 = 2.3
+                # I = 1
+                await conn.execute(
+                    """
+                     INSERT INTO card_user_state AS cus(
+                      from_id,
+                      to_id,
+                      account_id,
+                      next_review,
+                      i_factor,
+                      ef_factor
+                      )
+                    VALUES (
+                      $1,
+                      $2,
+                      $3,
+                      current_timestamp + '1 day' :: INTERVAL,
+                      1,
+                      2.3
+                      )
+                    ON CONFLICT (from_id, to_id, account_id) DO UPDATE SET
+                      next_review = current_timestamp + '1 day' :: INTERVAL,
+                      i_factor = 1,
+                      ef_factor = GREATEST(1.3, cus.ef_factor)
+                    """,
+                    ans.from_id,
+                    ans.to_id,
+                    current_user
+                )
         await conn.execute(
             """
             INSERT INTO revlog (

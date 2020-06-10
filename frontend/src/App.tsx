@@ -25,7 +25,8 @@ function App() {
         fromTxt: c.from_txt,
         toId: c.to_id,
         toLanguage: c.to_language,
-        toTokens: c.to_tokens
+        toTokens: c.to_tokens,
+        repetition: false
       })))
     }
     getQuizCards()
