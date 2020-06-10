@@ -22,11 +22,13 @@ CREATE TABLE account (
     id INTEGER PRIMARY KEY
 );
 
-CREATE TABLE card_user_state(
-    from_id    INTEGER                  NOT NULL,
-    to_id      INTEGER                  NOT NULL,
-    account_id INTEGER                  NOT NULL,
-    last_seen  TIMESTAMP WITH TIME ZONE NOT NULL,
+CREATE TABLE card_user_state (
+    from_id     INTEGER                  NOT NULL,
+    to_id       INTEGER                  NOT NULL,
+    account_id  INTEGER                  NOT NULL,
+    next_review TIMESTAMP WITH TIME ZONE NOT NULL,
+    i_factor    SMALLINT,
+    ef_factor   REAL,
     FOREIGN KEY (from_id, to_id) REFERENCES card(from_id, to_id),
     FOREIGN KEY (account_id) REFERENCES account,
     PRIMARY KEY (from_id, to_id, account_id)

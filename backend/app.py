@@ -50,7 +50,11 @@ class QuizRequest(BaseModel):
 
 @app.post("/draw_cards")
 async def draw_cards(qr: QuizRequest):
-    """Return a bunch of random cards."""
+    """Return the cards to test for this session.
+
+    The selection contains both old cards to renew and a given number of
+    brand new cards.
+    """
     # fake constant user id to simplify multi-user later
     current_user = 1
     # TODO would be nice to move queries to .sql files referred by name
@@ -58,6 +62,33 @@ async def draw_cards(qr: QuizRequest):
     async with get_conn() as conn:
         cards = await conn.fetch(
             """
+            SELECT * FROM (
+              SELECT
+                  fl.name     AS from_language,
+                  tl.name     AS to_language,
+                  c.from_id   AS from_id,
+                  c.to_id     AS to_id,
+                  c.from_txt  AS from_txt,
+                  c.to_tokens AS to_tokens
+              FROM
+                  card c
+                      JOIN language fl
+                          ON fl.id = c.from_lang
+                      JOIN language tl
+                          ON tl.id = c.to_lang
+                      LEFT JOIN card_user_state cus
+                              ON c.from_id = cus.from_id
+                                  AND c.to_id = cus.to_id
+                                  AND cus.account_id = $3
+              WHERE
+                  fl.iso693_3 = ANY($2)
+                  AND tl.iso693_3 = $1
+                  AND cus.account_id IS NULL
+              LIMIT 20
+            ) newcards
+
+            UNION ALL
+
             SELECT
                 fl.name     AS from_language,
                 tl.name     AS to_language,
@@ -71,14 +102,14 @@ async def draw_cards(qr: QuizRequest):
                         ON fl.id = c.from_lang
                     JOIN language tl
                         ON tl.id = c.to_lang
-                    LEFT JOIN card_user_state cus
-                            ON c.from_id = cus.from_id AND c.to_id = cus.to_id
+                    JOIN card_user_state cus
+                            ON c.from_id = cus.from_id
+                                AND c.to_id = cus.to_id
                                 AND cus.account_id = $3
+                                AND cus.next_review < current_timestamp
             WHERE
                 fl.iso693_3 = ANY($2)
                 AND tl.iso693_3 = $1
-                AND cus.account_id IS NULL
-            LIMIT 20
             """,
             qr.target_lang,
             qr.source_langs,
