@@ -36,18 +36,6 @@ const isAnswerOK = (expected: string, answer: string) => {
   return false
 }
 
-{/* Example ClozeCard
-       <ClozeCard
-        card={{
-          from_language: 'Italian',
-          to_language: 'English',
-          from_id: 1,
-          to_id: 23,
-          from_txt: 'Mangio la mela ora',
-          to_tokens: ['{{c1::I}}', 'eat', '{{c2::the}}', 'apple', '{{c3::now}}']
-        }}
-      /> */}
-
 interface ClozeFieldProps {
   clozeContent: string
   showCorrect: boolean
@@ -82,6 +70,7 @@ function ClozeField(props: ClozeFieldProps) {
 interface CardProps {
   card: Card,
   onAnswer: (expected: string[], given: string [], allCorrect: boolean) => void
+  onNextCard: () => void
 }
 
 function ClozeCard(props: CardProps) {
@@ -95,14 +84,18 @@ function ClozeCard(props: CardProps) {
     const newClozes = props.card.toTokens.filter(t => t.startsWith('{{'))
     setClozes(newClozes)
     setAnswers(newClozes.map(e => ''))
-
   }, [props.card])
 
-  const submitAnswers = () => {
-    setShowAnswers(true)
-    props.onAnswer(clozes.map(answerFromCloze), answers, answers.filter((a, i) => {
-      return !isAnswerOK(answerFromCloze(clozes[i]), a)
-    }).length === 0)
+  const nextAction = () => {
+    if (showAnswers){
+      props.onNextCard()
+    }
+    else{
+      setShowAnswers(true)
+      props.onAnswer(clozes.map(answerFromCloze), answers, answers.filter((a, i) => {
+        return !isAnswerOK(answerFromCloze(clozes[i]), a)
+      }).length === 0)
+    }
   }
 
   return (
@@ -111,7 +104,7 @@ function ClozeCard(props: CardProps) {
         <Divider horizontal>{props.card.fromLanguage}</Divider>
         <Header size='medium'>{props.card.fromTxt}</Header>
         <Divider horizontal>{props.card.toLanguage}</Divider>
-        <Form onSubmit={submitAnswers}>
+        <Form onSubmit={nextAction}>
           <Header size='medium'>{props.card.toTokens.map((e, i) => {
             const idx=clozes.indexOf(e)
             if (idx !== -1) {
@@ -127,7 +120,11 @@ function ClozeCard(props: CardProps) {
             }
           })}
           </Header>
-          <Form.Button type='submit' positive><Icon name='check' />Submit</Form.Button>
+          {showAnswers ?
+            <Form.Button primary type='submit'> Next card <Icon name='angle right' /></Form.Button>
+          :
+            <Form.Button type='submit' positive><Icon name='check' />Submit</Form.Button>
+        }
         </Form>
       </Segment>
     </div>

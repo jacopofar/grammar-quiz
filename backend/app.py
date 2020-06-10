@@ -76,9 +76,9 @@ async def draw_cards(qr: QuizRequest):
                                 AND cus.account_id = $3
             WHERE
                 fl.iso693_3 = ANY($2)
-            AND tl.iso693_3 = $1
-            AND cus.account_id IS NULL
-            LIMIT 10
+                AND tl.iso693_3 = $1
+                AND cus.account_id IS NULL
+            LIMIT 20
             """,
             qr.target_lang,
             qr.source_langs,

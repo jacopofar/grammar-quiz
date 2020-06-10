@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button, Icon, Segment, Table } from 'semantic-ui-react'
+import { Segment, Table } from 'semantic-ui-react'
 import axios from 'axios'
 import update from 'immutability-helper';
 
@@ -28,10 +28,6 @@ interface Props {
 function Quiz(props: Props) {
   // the index of the card currently shown
   const [cardIdx, setCardIdx] = useState<number>(0)
-  // is the user ready to go to the next card?
-  const [readyToContinue, setReadyToContinue] = useState<boolean>(false)
-  // is the quiz summary visible?
-  const [summaryVisible, setSummaryVisible] = useState<boolean>(false)
   // the answers given so far
   const [answers, setAnswers] = useState<Answer[]>([])
 
@@ -51,58 +47,46 @@ function Quiz(props: Props) {
       toTokens: props.cards[cardIdx].toTokens,
       answers: given
     }]}))
-    if(cardIdx < props.cards.length - 1) {
-      setReadyToContinue(true)
-    }
-    else {
-      setSummaryVisible(true)
-    }
   }
-
-  return (
+  if (cardIdx < props.cards.length){
+    return(
     <div>
       <ClozeCard
         card={props.cards[cardIdx]}
         onAnswer={handleAnswer}
+        onNextCard={() => {setCardIdx(cardIdx + 1)}}
       />
       <Segment>
-        <p>Sentence {cardIdx + 1} of {props.cards.length}</p>
-        {readyToContinue &&
-          <Button
-            primary
-            onClick={() => {
-              //TODO here check whether it was the last, and if so handle the quiz end
-              setCardIdx(cardIdx + 1)
-              setReadyToContinue(false)
-            }}
-          > Next card <Icon name='angle right' /></Button>
-        }
-        {summaryVisible &&
-        <Table celled>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>Source sentence</Table.HeaderCell>
-              <Table.HeaderCell>Target sentence</Table.HeaderCell>
-              <Table.HeaderCell>Answers</Table.HeaderCell>
-
-            </Table.Row>
-          </Table.Header>
-
-        <Table.Body>
-          {answers.map(ans =>
-          <Table.Row>
-            <Table.Cell>{ans.fromTxt}</Table.Cell>
-            <Table.Cell>{ans.toTokens.join(' ')}</Table.Cell>
-            <Table.Cell>{ans.answers.join(', ')}</Table.Cell>
-          </Table.Row>
-          )}
-        </Table.Body>
-      </Table>
-        }
+          <p>Sentence {cardIdx + 1} of {props.cards.length}</p>
       </Segment>
-
     </div>
-  )
+    )
+
+  }
+  else{
+    return(
+      <Table celled>
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>Source sentence</Table.HeaderCell>
+                  <Table.HeaderCell>Target sentence</Table.HeaderCell>
+                  <Table.HeaderCell>Answers</Table.HeaderCell>
+
+                </Table.Row>
+              </Table.Header>
+
+            <Table.Body>
+              {answers.map(ans =>
+              <Table.Row>
+                <Table.Cell>{ans.fromTxt}</Table.Cell>
+                <Table.Cell>{ans.toTokens.join(' ')}</Table.Cell>
+                <Table.Cell>{ans.answers.join(', ')}</Table.Cell>
+              </Table.Row>
+              )}
+            </Table.Body>
+          </Table>
+    )
+  }
 }
 
 export default Quiz
