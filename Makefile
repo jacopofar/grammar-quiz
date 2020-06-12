@@ -12,8 +12,12 @@ build-static-frontend:
 	cd frontend && \
 		yarn install && yarn build
 	rm -rf backend/static
+	mkdir backend/static
 	mv frontend/build backend/static
 
+.PHONY: global-backend-install
+global-backend-install:
+	python3 -m pip install -r requirements.txt
 
 .PHONY: local-run-backend
 local-run-backend:
@@ -63,3 +67,7 @@ destroy-local-test-postgres:
 
 .PHONY: test-all
 test-all: test-backend test-frontend
+
+.PHONY: build-docker-image
+build-docker-image:
+	docker build -t grammarquiz:$(shell git describe --always) -t grammarquiz:latest .
