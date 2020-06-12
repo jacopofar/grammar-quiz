@@ -15,8 +15,10 @@ This project will be completely FOSS and the produced data will be published whe
 
 ## How to run
 
-First you need to import the Tatoeba data into a local DB. Look at the `scripts/` folder for the various steps and
-relative instructions.
+First you need to import the Tatoeba data into a local Postgres DB. Look at the `scripts/` folder for the various steps
+ and relative instructions.
+
+### Run locally
 
 To run locally you need Python 3.7 or later, node.js 10.x or later, the yarn package manager and make.
 
@@ -24,6 +26,20 @@ Use `make local-install` to install the dependencies for the frontend and backen
 With `make local-run-backend` the backend will listen at port 8000 and reload on change, then
 `make local-run-frontend` will start the frontend server at port 3000, forwarding API calls to the port 8000 to
 make developing as simple and quick as possible.
+
+### Run using Docker
+
+You need to set up the environment variables listed in the `env.list` file. The easiest way is probably to use
+the [dotenv CLI](https://github.com/venthur/dotenv-cli) tool.
+Use `make build-docker-image` to build the Docker image, then run it with
+
+    dotenv docker run --name grammarquiz --env-file env.list -p 8000:8000 grammarquiz:latest
+
+or, if you want to connect to a postgres instance running in docker:
+
+    dotenv docker run --name grammarquiz --env-file env.list --link grammar-quiz-db -p 8000:8000 grammarquiz:latest
+
+in this case the environment variable PG_CONN_STR needs
 
 ## Test
 

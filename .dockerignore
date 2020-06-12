@@ -1,0 +1,5 @@
+scripts/generate_cards
+scripts/populate_db
+sentences.*
+links.*
+frontend/node_modules
