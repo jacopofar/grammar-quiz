@@ -12,8 +12,7 @@ build-static-frontend:
 	cd frontend && \
 		yarn install && yarn build
 	rm -rf backend/static
-	mkdir backend/static
-	mv frontend/build backend/static
+	mv frontend/build/ backend/static/
 
 .PHONY: global-backend-install
 global-backend-install:

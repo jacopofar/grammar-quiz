@@ -8,6 +8,5 @@ COPY requirements.txt .
 
 RUN make build-static-frontend
 RUN make global-backend-install
-WORKDIR /backend
 
-CMD uvicorn backend.app:app
+CMD uvicorn --host 0.0.0.0 backend.app:app
