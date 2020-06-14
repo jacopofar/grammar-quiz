@@ -51,6 +51,7 @@ function ClozeField(props: ClozeFieldProps) {
     <span>
       <Input
         autoFocus={props.autoFocus}
+        autoCapitalize="none"
         className="clozefield"
         onChange={(e) => {
             props.onAnswer(e.target.value)
@@ -111,7 +112,7 @@ function ClozeCard(props: CardProps) {
             const idx=clozes.indexOf(e)
             if (idx !== -1) {
               return <ClozeField
-                  autoFocus={idx == 0}
+                  autoFocus={idx === 0}
                   key={`${props.card.toId}-${idx}`}
                   clozeContent={e}
                   showCorrect={showAnswers}
