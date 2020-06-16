@@ -2,38 +2,21 @@ import logging
 from pathlib import Path
 from typing import List
 
-from authlib.common.security import generate_token
-from authlib.integrations.starlette_client import OAuth
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
-from backend.config import Config
 from backend.dbutil import get_conn, attach_db_cycle
+from backend.auth import attach_auth
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-config = Config()
-
 app = FastAPI()
 
-app.add_middleware(SessionMiddleware, secret_key=config.secret_session_key)
-
 attach_db_cycle(app)
-oauth = OAuth()
-oauth.register(
-    name='google',
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    client_kwargs={
-        'scope': 'openid email profile'
-    },
-    client_secret=config.sso_google_secret,
-    client_id=config.sso_google_client_id,
-)
+attach_auth(app)
 
 # TODO later use a reverse proxy to serve static files
 # this works perfectly for now
@@ -46,46 +29,11 @@ app.mount(
     name="app_files"
 )
 
-
 @app.get("/")
 def index():
     """Redirect the user to the static app."""
     return RedirectResponse(url="/app")
 
-
-@app.get("/login/login")
-async def login(request: Request):
-    redirect_uri = request.url_for('auth')
-    if 'X-Forwarded-Proto' in request.headers:
-        redirect_uri = redirect_uri.replace(
-          'http:', request.headers['X-Forwarded-Proto'] + ':')
-    # additional security, nonce is random and validated in case the URL
-    # is read but not the session cookie
-    request.session['nonce'] = generate_token()
-
-    return await oauth.google.authorize_redirect(
-        request, redirect_uri, nonce=request.session['nonce'])
-
-
-@app.get('/login/auth')
-async def auth(request: Request):
-    token = await oauth.google.authorize_access_token(request)
-    user = await oauth.google.parse_id_token(request, token)
-    if user['nonce'] != request.session['nonce']:
-        raise HTTPException(
-            status_code=401, detail="Wrong nonce value, weird...")
-    # here check the user mail, or even better an hash of it, and store the id
-    request.session['name'] = user['name']
-    del request.session['nonce']
-    return RedirectResponse(url='/')
-
-
-@app.get('/login/whoami')
-async def whoami(request: Request):
-    return dict(
-        authenticated=True,
-        name=request.session['name'],
-      )
 
 @app.get("/languages")
 async def get_languages():
