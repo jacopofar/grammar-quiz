@@ -1,5 +1,9 @@
 fastapi[all]==0.55.1
 uvicorn==0.11.5
 asyncpg==0.20.1
+# oauth support
+authlib==0.14.3
+# internal extra dependency of oauthlib
+httpx==0.13.3
 # for testing
 pytest==5.4.3
