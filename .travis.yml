@@ -13,6 +13,7 @@ before_script:
   - psql -U testuser -q -f tests/database_content.sql grammarquiz
 
 env:
+  global:
   - PG_CONN_STR="postgresql://testuser:secret@localhost:5432/grammarquiz"
   - SSO_GOOGLE_CLIENT_ID="fake"
   - SSO_GOOGLE_SECRET="fake"
