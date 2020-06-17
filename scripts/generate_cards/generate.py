@@ -27,7 +27,10 @@ EMPTY_CLOZE_FACTOR = 20
 WORD_MIN_RANK = 1000
 
 # evil evil words to not cover with the cloze
-FORBIDDEN_CLOZE_TOKENS = {'Tom', 'Mary'}
+FORBIDDEN_CLOZE_TOKENS = {'Tom', 'Mary', 'Muriel'}
+
+# how long (characters) can a sentence be to be accepted
+MAX_SENTENCE_LENGTH = 200
 
 
 def normalize(text: str, lang: str):
@@ -71,7 +74,7 @@ def main_multi(sentence_file: str, link_file: str):
     word_counters = {}  # lang -> Counter
     print(f'Processing files {sentence_file}, {link_file}...')
     for [_id, lang, text] in sents:
-        if len(text) > 140 or len(text) < 20:
+        if len(text) > MAX_SENTENCE_LENGTH or len(text) < 20:
             continue
         id_sents[int(_id)] = (lang, text)
         if lang not in word_counters:
