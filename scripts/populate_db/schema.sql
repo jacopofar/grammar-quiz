@@ -18,9 +18,14 @@ CREATE TABLE card (
 CREATE INDEX card_from_lang_to_lang_index
     ON card(from_lang, to_lang);
 
+CREATE SEQUENCE account_id_seq;
+
 CREATE TABLE account (
-    id INTEGER PRIMARY KEY
+    id INTEGER PRIMARY KEY DEFAULT nextval('account_id_seq')
 );
+-- this is to drop the sequence with the column by default
+ALTER SEQUENCE account_id_seq OWNED BY account.id;
+
 
 CREATE TABLE card_user_state (
     from_id     INTEGER                  NOT NULL,
@@ -48,3 +53,28 @@ CREATE TABLE revlog (
     PRIMARY KEY (from_id, to_id, account_id, review_time)
 );
 
+-- users logging in with credentials, not SSO
+CREATE TABLE account_internal (
+    username      TEXT                     NOT NULL,
+    password_hash TEXT                     NOT NULL,
+    password_salt TEXT                     NOT NULL,
+    creation      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp
+) INHERITS(account);
+
+-- anonymous fake user, cannot login
+INSERT INTO account_internal(
+    username,
+    password_hash,
+    password_salt
+)
+VALUES (
+    'anonymous',
+    'fake',
+    'impossible hash'
+);
+
+-- users logging in with google
+CREATE TABLE account_google (
+    mail          TEXT                     NOT NULL,
+    creation      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp
+) INHERITS(account);
