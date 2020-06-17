@@ -1,60 +1,84 @@
-import React, { useEffect, useState } from 'react'
-import { Grid, Segment } from 'semantic-ui-react'
 import axios from 'axios'
+import React, { useEffect, useState } from 'react'
+import { Button, Container, Dropdown, Grid, Menu } from 'semantic-ui-react'
+import { Link, HashRouter as Router, Route, Switch } from 'react-router-dom'
 
-import LanguageSelector from './LanguageSelector'
-import Quiz, { Card } from './Quiz'
+import Login from './Login'
+import Register from './Register'
+import Study from './Study'
+
 
 function App() {
-  const [sourceTargetLanguage, setSourceTargetLanguage] = useState<{src: string[], tgt: string}>()
-  const [quizCards, setQuizCards] = useState<Card[]>()
+  // user state: undefined when unknown, otherwise loggedIn set to true or false
+  const [loggedInUser, setLoggedInUser] = useState<{loggedIn: boolean, name?: string}>()
 
+  // check whether the user is logged in, and the name
   useEffect(() => {
-    if (typeof sourceTargetLanguage === 'undefined'){
-      return
+    async function getMyIdentity() {
+      const identity = (await axios.get('/login/whoami')).data
+      if (!identity.authenticated){
+        setLoggedInUser({loggedIn: false})
+      }
+      else {
+        setLoggedInUser({loggedIn: true, name: identity.name})
+      }
     }
-    async function getQuizCards() {
-      const cards = (await axios.post('/draw_cards', {
-        target_lang: sourceTargetLanguage?.tgt,
-        source_langs: sourceTargetLanguage?.src
-      })).data
-
-      setQuizCards(cards.map((c: any) => ({
-        fromId: c.from_id,
-        fromLanguage: c.from_language,
-        fromTxt: c.from_txt,
-        toId: c.to_id,
-        toLanguage: c.to_language,
-        toTokens: c.to_tokens,
-        repetition: false
-      })))
-    }
-    getQuizCards()
-  }, [sourceTargetLanguage])
+    getMyIdentity()
+  }, [])
 
   return (
-    <Grid padded>
-      <Grid.Column width={2}></Grid.Column>
-      <Grid.Column width={12}>
-        <h2>
-             Grammar quiz, test your grammar with sentences from Tatoeba
-        </h2>
-        {sourceTargetLanguage ? null :
-          <Segment>
-            <LanguageSelector
-              onSelected={(src, tgt) => setSourceTargetLanguage({src, tgt})}
+    <Router basename={process.env.PUBLIC_URL}>
+      <Menu fixed='top' inverted>
+        <Container>
+          <Menu.Item as='a' header>
+            Grammar quiz
+          </Menu.Item>
+          <Menu.Item as='a'><Link to="/">Home</Link></Menu.Item>
+          <Dropdown item simple text='Menu'>
+            <Dropdown.Menu>
+            {loggedInUser?.loggedIn ?
+             <Button
+             content={`logout ${loggedInUser.name}`}
+             onClick={() => {
+              axios.post('/login/logout').then(() =>{ window.location.href='/'})}
+              }
             />
-          </Segment>
-        }
-        {quizCards ?
-           <Quiz
-            cards={quizCards}/>
-          : null
-        }
-      </Grid.Column>
-      <Grid.Column width={2}></Grid.Column>
+             :
+             null}
+              {/* <Dropdown.Item>List Item</Dropdown.Item>
+              <Dropdown.Item>List Item</Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Header>Header Item</Dropdown.Header>
+              <Dropdown.Item>List Item</Dropdown.Item> */}
+            </Dropdown.Menu>
+          </Dropdown>
+      </Container>
+    </Menu>
+    <Grid padded>
+      <Grid.Column computer={2} only='computer'></Grid.Column>
+      <Grid.Column computer={12} mobile={16} tablet={12}>
 
-    </Grid>
+          <Switch>
+            <Route path="/login">
+                <Login />
+            </Route>
+            <Route path="/register">
+              <Register />
+            </Route>
+            <Route exact path="/">
+            {loggedInUser ?
+              <Study
+                loggedIn={loggedInUser.loggedIn}
+              />
+              :
+              <p>Loading...</p>
+            }
+            </Route>
+          </Switch>
+      </Grid.Column>
+      <Grid.Column computer={2} only='computer'></Grid.Column>
+      </Grid>
+    </Router>
   )
 }
 

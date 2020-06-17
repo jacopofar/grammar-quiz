@@ -1,11 +1,15 @@
+from hashlib import sha256
 import logging
 from pathlib import Path
+import secrets
+import string
 from typing import List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from starlette.responses import RedirectResponse
+from starlette.requests import Request
+from starlette.responses import RedirectResponse, JSONResponse
 
 from backend.dbutil import get_conn, attach_db_cycle
 from backend.auth import attach_auth
@@ -29,6 +33,7 @@ app.mount(
     name="app_files"
 )
 
+
 @app.get("/")
 def index():
     """Redirect the user to the static app."""
@@ -50,14 +55,14 @@ class QuizRequest(BaseModel):
 
 
 @app.post("/draw_cards")
-async def draw_cards(qr: QuizRequest):
+async def draw_cards(qr: QuizRequest, request: Request):
     """Return the cards to test for this session.
 
     The selection contains both old cards to renew and a given number of
     brand new cards.
     """
-    # fake constant user id to simplify multi-user later
-    current_user = 1
+    current_user = request.session.get('id', 1)
+
     # TODO would be nice to move queries to .sql files referred by name
     # and have a concise helper for that.
     async with get_conn() as conn:
@@ -128,16 +133,38 @@ class CardAnswer(BaseModel):
 
 
 @app.post("/register_answer")
-async def register_answer(ans: CardAnswer):
+async def register_answer(ans: CardAnswer, request: Request):
     """Register the answer an user gave to a card.
 
     This is used both to decide whether and when to show the card again and to
     collect information about which words and sentences are hard and which
     mistakes are the most common.
     """
-    # fake constant user id to simplify multi-user later
-    current_user = 1
+    current_user = request.session.get('id', 1)
     async with get_conn() as conn:
+        await conn.execute(
+            """
+            INSERT INTO revlog (
+              from_id,
+              to_id,
+              account_id,
+              review_time,
+              answers,
+              expected_answers,
+              correct
+              )
+            VALUES ($1, $2, $3, current_timestamp, $4, $5, $6)
+            """,
+            ans.from_id,
+            ans.to_id,
+            current_user,
+            ans.given_answers,
+            ans.expected_answers,
+            ans.correct
+        )
+        # user 1 is the anonymous user, so there's no revision time update
+        if current_user == 1:
+            return 'OK'
         # repetitions in the same session do not affect further the state
         if not ans.repetition:
             if ans.correct:
@@ -230,3 +257,89 @@ async def register_answer(ans: CardAnswer):
             ans.correct
         )
         return 'OK'
+
+
+class UserCreationRequest(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/register_user")
+async def register_user(cred: UserCreationRequest, request: Request):
+    """Register the user.
+
+    Sets the session and return OK when the user could be created,
+    or return a JSON with the error field describing the problem.
+    """
+    async with get_conn() as conn:
+        found = await conn.fetchrow(
+            """
+            SELECT 1 FROM
+                account_internal
+                WHERE username = $1
+            """,
+            cred.username)
+        if found is not None:
+            return JSONResponse(
+                dict(error='An user with this name already exists'),
+                status_code=status.HTTP_409_CONFLICT,
+            )
+        alphabet = string.ascii_letters + string.digits
+        salt = ''.join(secrets.choice(alphabet) for i in range(8))
+        hs = sha256((cred.password + salt).encode('utf-8')).hexdigest()
+        res = await conn.fetchrow(
+            """
+            INSERT INTO account_internal(
+                username,
+                password_hash,
+                password_salt)
+            VALUES ($1, $2, $3)
+            RETURNING id
+            """,
+            cred.username,
+            hs,
+            salt)
+        id_ = res['id']
+        request.session['name'] = cred.username
+        request.session['id'] = id_
+        return 'OK'
+
+
+# identical to creation request, but keeping the name was confusing
+class UserLoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/login")
+async def login(cred: UserLoginRequest, request: Request):
+    """Login an user
+
+    Sets the session and return OK when the user could log in,
+    or return a JSON with the error field describing the problem.
+    """
+    async with get_conn() as conn:
+        found = await conn.fetchrow(
+            """
+            SELECT id, password_hash, password_salt FROM
+                account_internal
+                WHERE username = $1
+            """,
+            cred.username)
+        if found is None:
+            return JSONResponse(
+                dict(error='Invalid credentials'),
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        hs = sha256(
+            (cred.password + found['password_salt']).encode('utf-8')
+            ).hexdigest()
+        if hs == found['password_hash']:
+            request.session['name'] = cred.username
+            request.session['id'] = found['id']
+            return 'OK'
+        else:
+            return JSONResponse(
+                dict(error='Invalid credentials'),
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )

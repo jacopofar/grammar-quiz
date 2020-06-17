@@ -6,6 +6,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
 from backend.config import Config
+from backend.dbutil import get_conn
 
 config = Config()
 
@@ -27,9 +28,9 @@ def attach_auth(app: FastAPI):
         client_id=config.sso_google_client_id,
     )
 
-    @app.get("/login/login")
+    @app.get("/login/googlelogin")
     async def login(request: Request):
-        redirect_uri = request.url_for('auth')
+        redirect_uri = request.url_for('googleauth')
         if 'X-Forwarded-Proto' in request.headers:
             redirect_uri = redirect_uri.replace(
               'http:', request.headers['X-Forwarded-Proto'] + ':')
@@ -40,17 +41,38 @@ def attach_auth(app: FastAPI):
         return await oauth.google.authorize_redirect(
             request, redirect_uri, nonce=request.session['nonce'])
 
-    @app.get('/login/auth')
-    async def auth(request: Request):
+    @app.get('/login/googleauth')
+    async def googleauth(request: Request):
         token = await oauth.google.authorize_access_token(request)
         user = await oauth.google.parse_id_token(request, token)
         if user['nonce'] != request.session['nonce']:
             raise HTTPException(
                 status_code=401, detail="Wrong nonce value, weird...")
-        # here check the user mail, or even better an hash of it, and store the id
-        request.session['name'] = user['name']
-        del request.session['nonce']
-        return RedirectResponse(url='/')
+        async with get_conn() as conn:
+            found = await conn.fetchrow(
+                """
+                SELECT id, mail FROM
+                    account_google
+                    WHERE mail = $1
+                """,
+                user['email'])
+            if found is None:
+                res = await conn.fetchrow(
+                    """
+                        INSERT INTO account_google(mail)
+                        VALUES ($1)
+                        RETURNING id
+                    """,
+                    user['email'],
+                    )
+                id_ = res['id']
+            else:
+                id_ = found['id']
+
+            request.session['id'] = id_
+            request.session['name'] = user['given_name']
+            del request.session['nonce']
+            return RedirectResponse(url='/')
 
     @app.post('/login/logout')
     async def logout(request: Request):
@@ -58,7 +80,7 @@ def attach_auth(app: FastAPI):
             del request.session['name']
         if 'id' in request.session:
             del request.session['id']
-        return dict(logout=True)
+        return 'Logged out'
 
     @app.get('/login/whoami')
     async def whoami(request: Request):
