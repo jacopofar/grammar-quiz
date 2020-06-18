@@ -89,10 +89,15 @@ async def draw_cards(qr: QuizRequest, request: Request):
                               ON c.from_id = cus.from_id
                                   AND c.to_id = cus.to_id
                                   AND cus.account_id = $3
+                      LEFT JOIN card_trouble tro
+                             ON c.from_id = tro.from_id
+                                  AND c.to_id = tro.to_id
+                                  AND tro.account_id = $3
               WHERE
                   fl.iso693_3 = ANY($2)
                   AND tl.iso693_3 = $1
                   AND cus.account_id IS NULL
+                  AND tro.account_id IS NULL
               LIMIT 20
             ) newcards
 
@@ -263,6 +268,46 @@ async def register_answer(ans: CardAnswer, request: Request):
             ans.correct
         )
         return 'OK'
+
+
+class IssueReport(BaseModel):
+    description: str
+    from_id: int
+    to_id: int
+    issue_type: str
+
+
+@app.post("/report_issue")
+async def report_issue(issue: IssueReport, request: Request):
+    current_user = request.session.get('id', 1)
+    async with get_conn() as conn:
+        await conn.fetchrow(
+            """
+            INSERT INTO card_trouble (
+                from_id, to_id, account_id, ts, description, issue_type)
+            VALUES
+                ($1, $2, $3, current_timestamp, $4, $5)
+            """,
+            issue.from_id,
+            issue.to_id,
+            current_user,
+            issue.description,
+            issue.issue_type,
+            )
+        if current_user != 1:
+            await conn.execute(
+                """
+                DELETE FROM card_user_state
+                WHERE
+                    from_id = $1
+                    AND to_id = $2
+                    AND account_id = $3
+                """,
+                issue.from_id,
+                issue.to_id,
+                current_user,
+            )
+    return 'OK'
 
 
 class UserCreationRequest(BaseModel):

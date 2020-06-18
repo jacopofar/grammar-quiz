@@ -52,7 +52,9 @@ function ClozeField(props: ClozeFieldProps) {
     <span>
       <Input
         autoFocus={props.autoFocus}
-        autoCapitalize="none"
+        autoCapitalize="off"
+        autoComplete="off"
+        autoCorrect="off"
         className="clozefield"
         onChange={(e) => {
             props.onAnswer(e.target.value)
@@ -75,6 +77,7 @@ interface CardProps {
   card: Card,
   onAnswer: (expected: string[], given: string [], allCorrect: boolean) => void
   onNextCard: () => void
+  onTrouble: (card: Card, issueType: string, issueDescription: string) => void
 }
 
 function ClozeCard(props: CardProps) {
@@ -150,6 +153,15 @@ function ClozeCard(props: CardProps) {
         <Modal.Content>
           <CardIssueReport
             card={props.card}
+            onReportDone={(type?: string, description?: string) => {
+              if(typeof type === 'undefined') {
+                setInIssueModal(false)
+              }
+              else{
+                props.onTrouble(props.card, type, description || '')
+                setInIssueModal(false)
+              }
+            }}
           />
         </Modal.Content>
       </Modal>

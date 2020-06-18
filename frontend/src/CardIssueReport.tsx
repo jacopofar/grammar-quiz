@@ -4,6 +4,7 @@ import { Card } from './Quiz'
 
 interface Props {
   card: Card
+  onReportDone: (type?: string, description?: string) => void
 }
 
 const issueTypes =[
@@ -14,27 +15,37 @@ const issueTypes =[
 
 function CardIssueReport(props: Props) {
   const [issueType, setIssueType] = useState<string>()
-
-  const handleIssueChange = (e: any, data: DropdownProps ) => {
-    setIssueType(data.value as string)
-  }
+  const [issueDescription, setIssueDescription] = useState<string>()
 
   return (
     <>
-      <p>What's the problem with this question?</p>
-      <p>From:</p>
+      <p>Ops! What's the problem with this question?</p>
+      <p>From {props.card.fromLanguage}:</p>
       <p>{props.card.fromTxt}</p>
-      <p>To:</p>
+      <p>To {props.card.toLanguage}:</p>
       <p>{props.card.toTxt}</p>
       <Form>
-      <Dropdown
+        <Dropdown
           placeholder='Choose problem type'
           fluid
           selection
           options={issueTypes.map((e, i) => ({...e, key: i}))}
-          onChange={handleIssueChange}
+          onChange={(e: any, data: DropdownProps ) => {setIssueType(data.value as string) }}
         />
-        <TextArea placeholder='Tell us more' />
+        <TextArea
+          placeholder="what's up?"
+          onChange={(e: any) => {setIssueDescription(e.target.value) }}
+          />
+        <p>You will not get again this sentence</p>
+        <Form.Button
+          primary
+          type='submit'
+          onClick={() => props.onReportDone(issueType, issueDescription)}
+          >Report issue</Form.Button>
+        <Form.Button
+          secondary
+          onClick={() => props.onReportDone()}
+          >Cancel</Form.Button>
       </Form>
       </>
   )
