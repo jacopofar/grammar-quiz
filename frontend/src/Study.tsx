@@ -25,11 +25,14 @@ function Study(props: {loggedIn: boolean}) {
       setQuizCards(cards.map((c: any) => ({
         fromId: c.from_id,
         fromLanguage: c.from_language,
-        fromTxt: c.from_txt,
+        fromTxt: c.from_text,
+        toTxt: c.to_text,
         toId: c.to_id,
         toLanguage: c.to_language,
         toTokens: c.to_tokens,
-        repetition: false
+        repetition: false,
+        fromLanguageCode: c.from_language_code,
+        toLanguageCode: c.to_language_code,
       })))
     }
     getQuizCards()

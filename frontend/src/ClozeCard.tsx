@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Divider, Form, Header, Icon, Input, Label, Segment } from 'semantic-ui-react'
+import { Button, Divider, Form, Header, Icon, Input, Label, Modal, Segment } from 'semantic-ui-react'
 import update from 'immutability-helper';
 
 import { Card } from './Quiz'
+import CardIssueReport from './CardIssueReport'
 import './ClozeCard.css'
 
 /**
@@ -51,7 +52,9 @@ function ClozeField(props: ClozeFieldProps) {
     <span>
       <Input
         autoFocus={props.autoFocus}
-        autoCapitalize="none"
+        autoCapitalize="off"
+        autoComplete="off"
+        autoCorrect="off"
         className="clozefield"
         onChange={(e) => {
             props.onAnswer(e.target.value)
@@ -74,12 +77,14 @@ interface CardProps {
   card: Card,
   onAnswer: (expected: string[], given: string [], allCorrect: boolean) => void
   onNextCard: () => void
+  onTrouble: (card: Card, issueType: string, issueDescription: string) => void
 }
 
 function ClozeCard(props: CardProps) {
   const [clozes, setClozes] = useState<string[]>(['ERROR'])
   const [answers, setAnswers] = useState<string[]>(['ERROR'])
   const [showAnswers, setShowAnswers] = useState<boolean>(false)
+  const [inIssueModal, setInIssueModal] = useState<boolean>(false)
 
   useEffect(() => {
     // when the changes, hide the tips and reset the previous answers
@@ -125,12 +130,41 @@ function ClozeCard(props: CardProps) {
           })}
           </Header>
           {showAnswers ?
+          <>
             <Form.Button primary type='submit'> Next card <Icon name='angle right' /></Form.Button>
+            <Button
+              icon
+              labelPosition='left' color='red' onClick={(event) => {
+                setInIssueModal(true)
+                // it's in a form, prevent submit
+                event.preventDefault()
+                }}>
+              <Icon name='warning sign' />
+              Report issue
+            </Button>
+            </>
           :
             <Form.Button type='submit' positive><Icon name='check' />Submit</Form.Button>
-        }
+          }
         </Form>
       </Segment>
+      <Modal size='large' open={inIssueModal} onClose={() => setInIssueModal(false)}>
+        <Modal.Header>Report a problem with the sentence</Modal.Header>
+        <Modal.Content>
+          <CardIssueReport
+            card={props.card}
+            onReportDone={(type?: string, description?: string) => {
+              if(typeof type === 'undefined') {
+                setInIssueModal(false)
+              }
+              else{
+                props.onTrouble(props.card, type, description || '')
+                setInIssueModal(false)
+              }
+            }}
+          />
+        </Modal.Content>
+      </Modal>
     </div>
   )
 }

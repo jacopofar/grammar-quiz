@@ -78,3 +78,15 @@ CREATE TABLE account_google (
     mail          TEXT                     NOT NULL,
     creation      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp
 ) INHERITS(account);
+
+-- report of problem about cards
+CREATE TABLE card_trouble (
+    from_id     INTEGER                  NOT NULL,
+    to_id       INTEGER                  NOT NULL,
+    account_id  INTEGER                  NOT NULL,
+    ts          TIMESTAMP WITH TIME ZONE NOT NULL,
+    description TEXT,
+    issue_type  TEXT,
+    FOREIGN KEY (from_id, to_id) REFERENCES card,
+    PRIMARY KEY (from_id, to_id, account_id)
+);

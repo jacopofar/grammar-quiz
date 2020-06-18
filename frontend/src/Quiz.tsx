@@ -11,8 +11,11 @@ export type Card = {
   fromId: number
   toId: number
   fromTxt: string
+  toTxt: string
   toTokens: string[]
-  repetition: boolean
+  repetition: boolean,
+  fromLanguageCode: string
+  toLanguageCode: string
 }
 
 type Answer = {
@@ -45,7 +48,6 @@ function Quiz(props: Props) {
     axios.post('/register_answer', {
       from_id: card.fromId,
       to_id: card.toId,
-
       expected_answers: expected,
       given_answers: given,
       correct: allCorrect,
@@ -64,6 +66,24 @@ function Quiz(props: Props) {
       }]}))
     }
   }
+
+  const handleWrongCard = (card: Card, issueType: string, issueDescription: string) => {
+    axios.post('/report_issue', {
+      from_id: card.fromId,
+      to_id: card.toId,
+      issue_type: issueType,
+      description: issueDescription
+    })
+    // if a reported card was also wrong (likely), it has to be removed
+    if (cards.length > 0
+        && cards[cards.length - 1].fromId == card.fromId
+        && cards[cards.length - 1].toId == card.toId) {
+          // bleah
+          setCards(update(cards, {$splice: [[cards.length - 1, 1]]}))
+    }
+    setCardIdx(cardIdx + 1)
+  }
+
   if (cardIdx < cards.length){
     return(
     <div>
@@ -71,6 +91,7 @@ function Quiz(props: Props) {
         card={cards[cardIdx]}
         onAnswer={handleAnswer}
         onNextCard={() => {setCardIdx(cardIdx + 1)}}
+        onTrouble={handleWrongCard}
       />
       <Segment>
         <p>Sentence {cardIdx + 1} of {cards.length}, including repetitions</p>
