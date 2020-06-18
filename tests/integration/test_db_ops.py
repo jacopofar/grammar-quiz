@@ -28,12 +28,12 @@ def test_draw_cards(client):
         ))
     assert len(response.json()) == 10
     card = response.json()[0]
-    assert 'to_txt' in card
+    assert 'to_text' in card
     # at least an ideogram or a letter!
-    assert len(card['to_txt']) > 1
-    assert 'from_txt' in card
+    assert len(card['to_text']) > 1
+    assert 'from_text' in card
     # at least an ideogram or a letter!
-    assert len(card['from_txt']) > 1
+    assert len(card['from_text']) > 1
 
 
 def test_answer_then_redraw(client):

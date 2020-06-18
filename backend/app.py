@@ -76,7 +76,7 @@ async def draw_cards(qr: QuizRequest, request: Request):
                   tl.iso693_3     AS to_language_code,
                   c.from_id       AS from_id,
                   c.to_id         AS to_id,
-                  c.from_txt      AS from_txt,
+                  c.from_txt      AS from_text,
                   c.to_tokens     AS to_tokens,
                   c.original_txt  AS to_text
               FROM
@@ -110,7 +110,7 @@ async def draw_cards(qr: QuizRequest, request: Request):
                 tl.iso693_3     AS to_language_code,
                 c.from_id       AS from_id,
                 c.to_id         AS to_id,
-                c.from_txt      AS from_txt,
+                c.from_txt      AS from_text,
                 c.to_tokens     AS to_tokens,
                 c.original_txt  AS to_text
             FROM
