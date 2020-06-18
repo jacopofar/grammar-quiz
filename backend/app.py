@@ -70,12 +70,15 @@ async def draw_cards(qr: QuizRequest, request: Request):
             """
             SELECT * FROM (
               SELECT
-                  fl.name     AS from_language,
-                  tl.name     AS to_language,
-                  c.from_id   AS from_id,
-                  c.to_id     AS to_id,
-                  c.from_txt  AS from_txt,
-                  c.to_tokens AS to_tokens
+                  fl.name         AS from_language,
+                  tl.name         AS to_language,
+                  fl.iso693_3     AS from_language_code,
+                  tl.iso693_3     AS to_language_code,
+                  c.from_id       AS from_id,
+                  c.to_id         AS to_id,
+                  c.from_txt      AS from_txt,
+                  c.to_tokens     AS to_tokens,
+                  c.original_txt  AS to_text
               FROM
                   card c
                       JOIN language fl
@@ -96,12 +99,15 @@ async def draw_cards(qr: QuizRequest, request: Request):
             UNION ALL
 
             SELECT
-                fl.name     AS from_language,
-                tl.name     AS to_language,
-                c.from_id   AS from_id,
-                c.to_id     AS to_id,
-                c.from_txt  AS from_txt,
-                c.to_tokens AS to_tokens
+                fl.name         AS from_language,
+                tl.name         AS to_language,
+                fl.iso693_3     AS from_language_code,
+                tl.iso693_3     AS to_language_code,
+                c.from_id       AS from_id,
+                c.to_id         AS to_id,
+                c.from_txt      AS from_txt,
+                c.to_tokens     AS to_tokens,
+                c.original_txt  AS to_text
             FROM
                 card c
                     JOIN language fl

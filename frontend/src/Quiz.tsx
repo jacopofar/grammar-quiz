@@ -11,8 +11,11 @@ export type Card = {
   fromId: number
   toId: number
   fromTxt: string
+  toTxt: string
   toTokens: string[]
-  repetition: boolean
+  repetition: boolean,
+  fromLanguageCode: string
+  toLanguageCode: string
 }
 
 type Answer = {
