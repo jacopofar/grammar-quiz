@@ -46,7 +46,7 @@ async def main(jsonl_file: str):
             ))
         except KeyError:
             print(f'Error processing a row: {line}')
-        if len(pending) > 5000:
+        if len(pending) > 2000:
             async with conn.transaction():
                 # much slower but allows to specify the target columns:
                 # await conn.executemany(

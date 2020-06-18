@@ -73,7 +73,9 @@ def main_multi(sentence_file: str, link_file: str):
     langs = set()  # set of seen lanuages
     word_counters = {}  # lang -> Counter
     print(f'Processing files {sentence_file}, {link_file}...')
-    for [_id, lang, text] in sents:
+    for idx, [_id, lang, text] in enumerate(sents):
+        if idx % 10_000 == 0:
+            print(f'Processed {idx} rows from the sentences CSV so far')
         if len(text) > MAX_SENTENCE_LENGTH or len(text) < 20:
             continue
         id_sents[int(_id)] = (lang, text)
@@ -83,8 +85,7 @@ def main_multi(sentence_file: str, link_file: str):
             [normalize(token, lang) for token in tokenize(text, lang)]
         )
         langs.add(lang)
-    print(
-        f'Imported {len(id_sents)} sentences')
+    print(f'Imported {len(id_sents)} sentences')
 
     most_commons = {}
     for l in langs:
@@ -96,10 +97,11 @@ def main_multi(sentence_file: str, link_file: str):
     del word_counters
 
     pairs = []
-    for [from_id, to_id] in links:
+    for idx, [from_id, to_id] in enumerate(links):
         from_id = int(from_id)
         to_id = int(to_id)
-
+        if idx % 10_000 == 0:
+            print(f'Processed {idx} rows from the links CSV so far')
         if from_id not in id_sents or to_id not in id_sents:
             continue
         pairs.append(

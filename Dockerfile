@@ -16,4 +16,7 @@ COPY Makefile /Makefile
 
 RUN make global-backend-install
 
+# copy the util scripts
+COPY scripts /scripts
+
 CMD uvicorn --host 0.0.0.0 backend.app:app
