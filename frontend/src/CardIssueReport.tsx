@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Dropdown, DropdownProps, Form, TextArea } from 'semantic-ui-react'
 import { Card } from './Quiz'
 

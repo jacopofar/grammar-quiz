@@ -33,7 +33,7 @@ function App() {
           <Menu.Item as='a' header>
             Grammar quiz
           </Menu.Item>
-          <Menu.Item as='a'><Link to="/">Home</Link></Menu.Item>
+          <Menu.Item><Link to="/">Home</Link></Menu.Item>
           <Dropdown item simple text='Menu'>
             <Dropdown.Menu>
             {loggedInUser?.loggedIn ?

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, JSONResponse
 
-from backend.dbutil import get_conn, attach_db_cycle
+from backend.dbutil import get_conn, attach_db_cycle, get_sql
 from backend.auth import attach_auth
 
 logger = logging.getLogger()
@@ -67,67 +67,7 @@ async def draw_cards(qr: QuizRequest, request: Request):
     # and have a concise helper for that.
     async with get_conn() as conn:
         cards = await conn.fetch(
-            """
-            SELECT * FROM (
-              SELECT
-                  fl.name         AS from_language,
-                  tl.name         AS to_language,
-                  fl.iso693_3     AS from_language_code,
-                  tl.iso693_3     AS to_language_code,
-                  c.from_id       AS from_id,
-                  c.to_id         AS to_id,
-                  c.from_txt      AS from_text,
-                  c.to_tokens     AS to_tokens,
-                  c.original_txt  AS to_text
-              FROM
-                  card c
-                      JOIN language fl
-                          ON fl.id = c.from_lang
-                      JOIN language tl
-                          ON tl.id = c.to_lang
-                      LEFT JOIN card_user_state cus
-                              ON c.from_id = cus.from_id
-                                  AND c.to_id = cus.to_id
-                                  AND cus.account_id = $3
-                      LEFT JOIN card_trouble tro
-                             ON c.from_id = tro.from_id
-                                  AND c.to_id = tro.to_id
-                                  AND tro.account_id = $3
-              WHERE
-                  fl.iso693_3 = ANY($2)
-                  AND tl.iso693_3 = $1
-                  AND cus.account_id IS NULL
-                  AND tro.account_id IS NULL
-              LIMIT 20
-            ) newcards
-
-            UNION ALL
-
-            SELECT
-                fl.name         AS from_language,
-                tl.name         AS to_language,
-                fl.iso693_3     AS from_language_code,
-                tl.iso693_3     AS to_language_code,
-                c.from_id       AS from_id,
-                c.to_id         AS to_id,
-                c.from_txt      AS from_text,
-                c.to_tokens     AS to_tokens,
-                c.original_txt  AS to_text
-            FROM
-                card c
-                    JOIN language fl
-                        ON fl.id = c.from_lang
-                    JOIN language tl
-                        ON tl.id = c.to_lang
-                    JOIN card_user_state cus
-                            ON c.from_id = cus.from_id
-                                AND c.to_id = cus.to_id
-                                AND cus.account_id = $3
-                                AND cus.next_review < current_timestamp
-            WHERE
-                fl.iso693_3 = ANY($2)
-                AND tl.iso693_3 = $1
-            """,
+            get_sql('draw_cards'),
             qr.target_lang,
             qr.source_langs,
             current_user)
@@ -179,7 +119,7 @@ async def register_answer(ans: CardAnswer, request: Request):
         # repetitions in the same session do not affect further the state
         if not ans.repetition:
             if ans.correct:
-                # not correct, roughly equivalent to "Easy" in Anki
+                # correct, roughly equivalent to "Easy" in Anki
                 # EF = EF + 0.15
                 #  if new, EF is 2.5 + 0.15 = 2.65
                 # I = 1 iif new card
@@ -187,30 +127,7 @@ async def register_answer(ans: CardAnswer, request: Request):
                 # I = round(I * EF) iif I > 1 and not new card
                 # next review in I days
                 await conn.execute(
-                    """
-                    INSERT INTO card_user_state AS cus(
-                      from_id,
-                      to_id,
-                      account_id,
-                      next_review,
-                      i_factor,
-                      ef_factor
-                      )
-                    VALUES (
-                      $1,
-                      $2,
-                      $3,
-                      current_timestamp + '1 day' :: INTERVAL,
-                      1,
-                      2.65
-                      )
-                    ON CONFLICT (from_id, to_id, account_id) DO UPDATE SET
-                      next_review = current_timestamp + ROUND(cus.i_factor) * '1 day' :: interval,
-                      i_factor = CASE
-                            WHEN cus.i_factor = 1 THEN 6
-                            ELSE round(cus.i_factor * cus.ef_factor) END,
-                      ef_factor = GREATEST(1.3, cus.ef_factor + 0.15)
-                    """,
+                    get_sql('reschedule_correct_card'),
                     ans.from_id,
                     ans.to_id,
                     current_user
@@ -221,45 +138,13 @@ async def register_answer(ans: CardAnswer, request: Request):
                 #  if new, EF is assumed 2.5, so will become 2.5 - 0.2 = 2.3
                 # I = 1
                 await conn.execute(
-                    """
-                     INSERT INTO card_user_state AS cus(
-                      from_id,
-                      to_id,
-                      account_id,
-                      next_review,
-                      i_factor,
-                      ef_factor
-                      )
-                    VALUES (
-                      $1,
-                      $2,
-                      $3,
-                      current_timestamp + '1 day' :: INTERVAL,
-                      1,
-                      2.3
-                      )
-                    ON CONFLICT (from_id, to_id, account_id) DO UPDATE SET
-                      next_review = current_timestamp + '1 day' :: INTERVAL,
-                      i_factor = 1,
-                      ef_factor = GREATEST(1.3, cus.ef_factor)
-                    """,
+                    get_sql('reschedule_wrong_card'),
                     ans.from_id,
                     ans.to_id,
                     current_user
                 )
         await conn.execute(
-            """
-            INSERT INTO revlog (
-              from_id,
-              to_id,
-              account_id,
-              review_time,
-              answers,
-              expected_answers,
-              correct
-              )
-            VALUES ($1, $2, $3, current_timestamp, $4, $5, $6)
-            """,
+            get_sql('insert_revlog'),
             ans.from_id,
             ans.to_id,
             current_user,

@@ -76,8 +76,8 @@ function Quiz(props: Props) {
     })
     // if a reported card was also wrong (likely), it has to be removed
     if (cards.length > 0
-        && cards[cards.length - 1].fromId == card.fromId
-        && cards[cards.length - 1].toId == card.toId) {
+        && cards[cards.length - 1].fromId === card.fromId
+        && cards[cards.length - 1].toId === card.toId) {
           // bleah
           setCards(update(cards, {$splice: [[cards.length - 1, 1]]}))
     }

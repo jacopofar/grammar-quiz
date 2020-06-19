@@ -1,9 +1,12 @@
-import logging
 from contextlib import asynccontextmanager
+from functools import lru_cache
+import importlib.resources as pkg_resources
+import logging
 
 import asyncpg
 from fastapi import FastAPI
 
+import backend.sql
 from backend.config import Config
 
 config = Config()
@@ -36,3 +39,15 @@ async def get_conn():
         yield conn
     finally:
         await __db_pool.release(conn)
+
+
+@lru_cache()
+def get_sql(query_name: str) -> str:
+    """Read the content of a stored query as a string.
+
+    SQL comments are stripped.
+    """
+    query = pkg_resources.read_text(
+        backend.sql, f'{query_name}.sql').split('\n')
+    query = [line for line in query if not line.startswith('--')]
+    return '\n'.join(query)
