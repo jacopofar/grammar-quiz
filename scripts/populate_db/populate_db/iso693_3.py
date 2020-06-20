@@ -366,4 +366,6 @@ ISO_693_3 = {
     'jpa': 'Jewish Palestinian Aramaic',
     'phn': 'Phoenician',
     'rel': 'Rendille',
+    'iii': 'Nuosu',
+    'drt': 'Drents',
 }

@@ -44,8 +44,8 @@ async def main(jsonl_file: str):
                 card['original_txt'],
                 card['resulting_tokens'],
             ))
-        except KeyError:
-            print(f'Error processing a row: {line}')
+        except KeyError as ke:
+            print(f'Error processing a row: {line}: {ke}')
         if len(pending) > 2000:
             async with conn.transaction():
                 # much slower but allows to specify the target columns:

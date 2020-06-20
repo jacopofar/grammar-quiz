@@ -21,17 +21,19 @@ const answerFromCloze = (cloze: string) => {
 }
 
 const isAnswerOK = (expected: string, answer: string) => {
+
+  // tolerate an extra punctuation mark
+  if (/['.,?!;。、？！' ]/.test(expected.slice(-1))) {
+    expected = expected.slice(0, -1)
+  }
+  if (/['.,?!;。、？！' ]/.test(answer.slice(-1))) {
+    answer = answer.slice(0, -1)
+  }
   if (answer === expected) {
     return true
   }
-  // tolerate an extra punctuation mark
-  if (/['.,?!;。、？！']/.test(expected.slice(-1))){
-    if (expected.slice(0, -1) === answer){
-      return true
-    }
-  }
   // tolerate empty cloze as space
-  if (expected === '-' && answer === ''){
+  if (expected === '-' && (answer === '' || answer === ' ')) {
     return true
   }
   return false
@@ -42,6 +44,7 @@ interface ClozeFieldProps {
   showCorrect: boolean
   onAnswer: (answer: string) => void
   autoFocus: boolean
+  hintDirection: 'left' | 'right'
 }
 
 
@@ -63,9 +66,9 @@ function ClozeField(props: ClozeFieldProps) {
       />
       {props.showCorrect &&
         <>{(isAnswerOK(expectedAnswer, answer) ?
-          <Label basic color='green' pointing='left'><Icon name='check' /></Label>
+          <Label basic color='green' pointing={props.hintDirection}><Icon name='check' /></Label>
         :
-          <Label basic color='red' pointing='left'>{expectedAnswer}<span> </span></Label>
+          <Label basic color='red' pointing={props.hintDirection}>{expectedAnswer}<span> </span></Label>
           )}
         </>
       }
@@ -106,26 +109,39 @@ function ClozeCard(props: CardProps) {
     }
   }
 
+  const textDirection = (lang: string) => {
+    if ([
+      "ara", "arq","heb", "arz", "uig", "pes", "acm", "urd", "yid", "pnb", "oar", "ary", "aii", "afb", "pus",
+      "snd", "div", "otk", "tmr", "syc", "phn", "jpa"
+      ].includes(lang)){
+        return 'rtl'
+      }
+      else{
+        return 'ltr'
+      }
+  }
+
   return (
     <div>
       <Segment>
         <Divider horizontal>{props.card.fromLanguage}</Divider>
         <Header size='medium'>{props.card.fromTxt}</Header>
         <Divider horizontal>{props.card.toLanguage}</Divider>
-        <Form onSubmit={nextAction}>
+        <Form onSubmit={nextAction} dir={textDirection(props.card.toLanguageCode)}>
           <Header size='medium'>{props.card.toTokens.map((e, i) => {
             const idx=clozes.indexOf(e)
             if (idx !== -1) {
               return <ClozeField
                   autoFocus={idx === 0}
-                  key={`${props.card.toId}-${idx}`}
+                  key={`${props.card.toId}-${idx}-c`}
                   clozeContent={e}
                   showCorrect={showAnswers}
                   onAnswer={(ans) => setAnswers(update(answers, {[idx]: {$set: ans}}))}
+                  hintDirection={textDirection(props.card.toLanguageCode) === 'rtl' ? 'right' : 'left'}
                 />
             }
             else {
-              return <span key={i}>{e} </span>
+              return <span key={`${props.card.toId}-${i}-t`}>{e}</span>
             }
           })}
           </Header>

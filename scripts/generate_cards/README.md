@@ -13,12 +13,12 @@ You need Python3.6 or later. Download the sentence and links file mentioned abov
 files, `sentences.csv` and `links.csv`.
 
 ## ICU component
-To perform word segmentation on some languages the [ICU library](https://site.icu-project.org/) is used.
+To perform word segmentation the [ICU library](https://site.icu-project.org/) is used.
 This requires ICU to be installed first.
 The exact installation procedure depends on the system, you'll have to look at the site and be ready to search
 on the internet.
 
-However, here is how I installed it on macOS Catalina:
+However, here is how I installed it on __macOS Catalina__:
 
 * `brew install intltool icu4c gettext` to install the packages using Brew, may be already installed
 * `export ICU_VERSION=67` to set the library version
@@ -26,7 +26,7 @@ However, here is how I installed it on macOS Catalina:
 * `export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"` to allow pyICU build to find the package
 * `export PATH=/usr/local/opt/icu4c/bin:$PATH` to allow pyICU build to run icu-config
 
-On Debian/Ubuntu:
+On __Debian/Ubuntu__ (used in the Docker image for the whole project):
 
 * `apt-get update && apt-get install libicu-dev gettext`
 

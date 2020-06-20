@@ -1,6 +1,6 @@
 # this script can create an initial DB and populate it
 # is supposed to run in the same container of the app
-apt-get update && apt-get install -y libicu-dev pkg-config wget
+apt-get update && apt-get install -y libicu-dev pkg-config wget postgresql-client
 pip3 install -r /scripts/generate_cards/requirements.txt
 wget https://downloads.tatoeba.org/exports/sentences.tar.bz2
 tar -xvjf sentences.tar.bz2
