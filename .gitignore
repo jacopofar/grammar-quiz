@@ -1,3 +1,9 @@
 backend/static/
 # dotenv file
 .env
+
+# sentence files
+scripts/links.csv
+scripts/sentences.csv
+# output data
+scripts/universal_cards.*

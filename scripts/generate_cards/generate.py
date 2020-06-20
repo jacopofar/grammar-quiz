@@ -2,60 +2,61 @@ import argparse
 from collections import Counter
 from csv import reader
 import json
-from random import randint
+from random import randint, shuffle
+from sys import maxunicode
+from unicodedata import category
 
-from chop.mmseg import Tokenizer as MMSEGTokenizer
 import icu
-import tinysegmenter
 
-icu_words = {
-    lang: icu.BreakIterator.createWordInstance(icu.Locale(lang))
-    for lang in ['tha', 'lao', 'khm', 'mya']
-    }
+# word breakers instances
+_breakers = {}
 
+# translation table to remove punctuation or spaces
+# this covers all punctuation in the Unicode
+PUNCT_TRANSL = dict.fromkeys(
+    i for i in range(maxunicode)
+    if category(chr(i)).startswith('P')
+    )
 
-segmenter_cmn = MMSEGTokenizer()
-segmenter_jpn = tinysegmenter.TinySegmenter()
 
 # how often to add an extra cloze
-ANOTHER_CLOZE_FACTOR = 4
+ANOTHER_CLOZE_FACTOR = 6
 
 # how often to add a fake cloze that doesn't replace anything
-EMPTY_CLOZE_FACTOR = 20
+EMPTY_CLOZE_FACTOR = 100
 
 # how many most-common words will be replaced by clozes
 WORD_MIN_RANK = 1000
 
 # evil evil words to not cover with the cloze
-FORBIDDEN_CLOZE_TOKENS = {'Tom', 'Mary', 'Muriel'}
+FORBIDDEN_CLOZE_TOKENS = {'Tom', 'Mary', 'Muriel', 'Layla'}
 
 # how long (characters) can a sentence be to be accepted
-MAX_SENTENCE_LENGTH = 200
+MAX_SENTENCE_LENGTH = 250
 
 
-def normalize(text: str, lang: str):
-    """Normalize the text.
+def normalized(text: str):
+    """Remove ounctuation from a token.
 
-    This is used to allow comparison of tokens to extract the frequency
+    This is used to allow comparison of tokens to extract the frequency,
+    but does not affect the tokens that are saved.
+
+    A string containing only punctuation becomes empty.
     """
-    if text[:-1] in '.,?!;。、？！':
-        text = text[:-1]
-    return text.lower()
+    return text.translate(PUNCT_TRANSL).lower()
 
 
 def tokenize(text: str, lang: str):
     """Split a string into tokens."""
-    # Chinese Mandarin? Use chop
-    if lang == 'cmn':
-        return list(segmenter_cmn.cut(text))
-    # Japanese? use tinysegmenter
-    if lang == 'jpn':
-        return segmenter_jpn.tokenize(text)
-    # Languages covered by ICU?
-    if lang in icu_words:
-        icu_words[lang].setText(text)
-        boundaries = list(icu_words[lang])
-        return [text[i:j] for i, j in zip([0] + boundaries, boundaries)]
+    # Is there no word breaker already set up? Instantiate it
+    if lang not in _breakers:
+        _breakers[lang] = (
+            icu.BreakIterator.createWordInstance(icu.Locale(lang))
+            )
+
+    _breakers[lang].setText(text)
+    boundaries = list(_breakers[lang])
+    return [text[i:j] for i, j in zip([0] + boundaries, boundaries)]
 
     # any other language, just use spaces
     return text.split()
@@ -74,15 +75,15 @@ def main_multi(sentence_file: str, link_file: str):
     word_counters = {}  # lang -> Counter
     print(f'Processing files {sentence_file}, {link_file}...')
     for idx, [_id, lang, text] in enumerate(sents):
-        if idx % 10_000 == 0:
-            print(f'Processed {idx} rows from the sentences CSV so far')
+        if idx % 200_000 == 0:
+            print(f'Read {idx} rows from the sentences CSV so far')
         if len(text) > MAX_SENTENCE_LENGTH or len(text) < 20:
             continue
         id_sents[int(_id)] = (lang, text)
         if lang not in word_counters:
             word_counters[lang] = Counter()
         word_counters[lang].update(
-            [normalize(token, lang) for token in tokenize(text, lang)]
+            [normalized(token) for token in tokenize(text, lang)]
         )
         langs.add(lang)
     print(f'Imported {len(id_sents)} sentences')
@@ -90,6 +91,8 @@ def main_multi(sentence_file: str, link_file: str):
     most_commons = {}
     for l in langs:
         # remove empty string, that's normalized punctuation
+        word_counters[l].pop('', None)
+        # remove the space character
         word_counters[l].pop('', None)
         most_commons[l] = set(
             w for w, _ in word_counters[l].most_common(WORD_MIN_RANK)
@@ -100,8 +103,8 @@ def main_multi(sentence_file: str, link_file: str):
     for idx, [from_id, to_id] in enumerate(links):
         from_id = int(from_id)
         to_id = int(to_id)
-        if idx % 10_000 == 0:
-            print(f'Processed {idx} rows from the links CSV so far')
+        if idx % 100_000 == 0:
+            print(f'Read {idx} rows from the links CSV so far')
         if from_id not in id_sents or to_id not in id_sents:
             continue
         pairs.append(
@@ -115,21 +118,30 @@ def main_multi(sentence_file: str, link_file: str):
             )
         )
 
-    print(f'Found {len(pairs)} sentence pairs')
-
+    print(f'Found {len(pairs)} sentence pairs, shuffling...')
+    # this is because similar sentences are inserted close in time
+    # by shuffling they will be inserted in random order and an unsorted
+    # select in postgres will give them in that order in the current
+    # implementation. Decent random sampling from the DB is a bit expensive,
+    shuffle(pairs)
+    print('Shuffled')
     out = open('universal_cards.tsv', 'w')
     out_details = open('universal_cards.jsonl', 'w')
-    for (
+    for idx, (
         from_lang,
         to_lang,
         from_id,
         to_id,
         from_txt,
         to_txt
-            ) in pairs:
+            ) in enumerate(pairs):
         tokens = tokenize(to_txt, to_lang)
+        # we must be sure this is always valid or the cards are wrong!
+        assert to_txt == ''.join(tokens)
         cloze_idx = 1
         for _ in range(100):
+            if idx % 50_000 == 0:
+                print(f'Written {idx} cards out of {len(pairs)} so far')
             to_replace_idx = randint(0, len(tokens) - 1)
             # no cloze of a cloze
             if tokens[to_replace_idx].startswith('{{'):
@@ -140,7 +152,7 @@ def main_multi(sentence_file: str, link_file: str):
                     and tokens[to_replace_idx - 1].endswith('::-}}')):
                 continue
             # only the most common words
-            if (normalize(tokens[to_replace_idx], to_lang)
+            if (normalized(tokens[to_replace_idx])
                     not in most_commons[to_lang]):
                 continue
             # ignore forbidden words
