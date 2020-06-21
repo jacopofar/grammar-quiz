@@ -151,10 +151,14 @@ def main_multi(sentence_file: str, link_file: str):
             # no cloze of a cloze
             if tokens[to_replace_idx].startswith('{{'):
                 continue
-            # do not put cloze after empty cloze
+            # do not put cloze after empty cloze or space
             if (
                     to_replace_idx > 0
-                    and tokens[to_replace_idx - 1].endswith('::-}}')):
+                    and (
+                        tokens[to_replace_idx - 1].endswith('::-}}')
+                        or tokens[to_replace_idx - 1].endswith(':: }}')
+                        )
+                    ):
                 continue
             # only the most common words
             if (normalized(tokens[to_replace_idx])
@@ -163,6 +167,11 @@ def main_multi(sentence_file: str, link_file: str):
             if tokens[to_replace_idx] == ' ':
                 if r.randint(0, TOLERATE_SPACE_FACTOR) > 0:
                     continue
+                # if the next element is a cloze, do not replace or would
+                # be ambiguous for the user
+                if (to_replace_idx < len(tokens) - 1
+                        and tokens[to_replace_idx + 1].startswith('{{')):
+                        continue
             # ignore forbidden words
             if tokens[to_replace_idx] in FORBIDDEN_CLOZE_TOKENS:
                 continue
