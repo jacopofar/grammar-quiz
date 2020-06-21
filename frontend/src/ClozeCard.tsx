@@ -97,7 +97,7 @@ function ClozeCard(props: CardProps) {
   const [inIssueModal, setInIssueModal] = useState<boolean>(false)
   // free-form hint and explanations note an user can store
   const [freeExplanation, setFreeExplanation] = useState<string>('')
-  const [freeHint, setHint] = useState<string>('')
+  const [freeHint, setFreeHint] = useState<string>('')
 
   useEffect(() => {
     // when the props changes, hide the tips and reset the previous answers
@@ -105,6 +105,9 @@ function ClozeCard(props: CardProps) {
     const newClozes = props.card.toTokens.filter(t => t.startsWith('{{'))
     setClozes(newClozes)
     setAnswers(newClozes.map(e => ''))
+    setFreeHint(props.card.hint || '')
+    setFreeExplanation(props.card.explanation || '')
+
   }, [props.card])
 
   const nextAction = () => {
@@ -195,13 +198,13 @@ function ClozeCard(props: CardProps) {
             <Label>You can write yourself an hint to be shown next time with the question</Label>
             <TextArea
               placeholder="Hint..."
-              // value={props.card.hint}
-              onChange={(e: any) => {setHint(e.target.value)}}
+              value={freeHint}
+              onChange={(e: any) => {setFreeHint(e.target.value)}}
               />
             <Label>You may write yourself a note about this sentence to be shown next time after you answer</Label>
             <TextArea
               placeholder="Explanation..."
-              // value={props.card.explanation}
+              value={freeExplanation}
               onChange={(e: any) => {setFreeExplanation(e.target.value)}}
               />
           </Form>

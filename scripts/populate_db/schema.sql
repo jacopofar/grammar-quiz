@@ -100,5 +100,5 @@ CREATE TABLE card_note (
     hint        TEXT,
     explanation TEXT,
     FOREIGN KEY (from_id, to_id) REFERENCES card,
-    PRIMARY KEY (to_id, account_id)
+    PRIMARY KEY (from_id, to_id, account_id)
 );

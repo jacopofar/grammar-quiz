@@ -74,9 +74,36 @@ async def draw_cards(qr: QuizRequest, request: Request):
 
         expired_cards = await conn.fetch(
             get_sql('get_expired_cards'),
-            qr.target_lang,
-            qr.source_langs,
             current_user)
+        # TODO postgres insists in merging cards and languages before the join
+        # with the user card state which is very selective
+        # this is a workaround, the join is done in the backend
+        languages_l = await conn.fetch(
+            'SELECT id, name, iso693_3 FROM language')
+        src_langs = {}
+        to_lang_id = set()
+        to_lang_name = None
+        for l in languages_l:
+            if l['iso693_3'] == qr.target_lang:
+                to_lang_id = l['id']
+                to_lang_name = l['name']
+
+            if l['iso693_3'] in qr.source_langs:
+                src_langs[l['id']] = (l['iso693_3'], l['name'])
+
+        expired_cards = [
+            dict(ec.items()) for ec in expired_cards
+            if ec['from_lang'] in src_langs and ec['to_lang'] == to_lang_id]
+
+        for ec in expired_cards:
+            ec['from_language_code'] = src_langs[ec['from_lang']][0]
+            ec['from_language'] = src_langs[ec['from_lang']][1]
+
+            ec['to_language_code'] = qr.target_lang
+            ec['to_language'] = to_lang_name
+
+            del ec['from_lang']
+            del ec['to_lang']
 
         return expired_cards + cards_new
 
@@ -292,17 +319,7 @@ async def take_note(note: NoteAboutCard, request: Request):
         )
     async with get_conn() as conn:
         await conn.execute(
-            """
-            INSERT INTO card_note (
-                from_id,
-                to_id,
-                account_id,
-                ts,
-                hint,
-                explanation
-              )
-            VALUES ($1, $2, $3, current_timestamp, $4, $5)
-            """,
+            get_sql('upsert_card_notes'),
             note.from_id,
             note.to_id,
             current_user,
