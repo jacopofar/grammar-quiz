@@ -64,12 +64,21 @@ async def draw_cards(qr: QuizRequest, request: Request):
     current_user = request.session.get('id', 1)
 
     async with get_conn() as conn:
-        cards = await conn.fetch(
-            get_sql('draw_cards'),
+        cards_new = await conn.fetch(
+            get_sql('draw_new_cards'),
             qr.target_lang,
             qr.source_langs,
             current_user)
-        return cards
+        if current_user == 1:
+            return cards_new
+
+        expired_cards = await conn.fetch(
+            get_sql('get_expired_cards'),
+            qr.target_lang,
+            qr.source_langs,
+            current_user)
+
+        return expired_cards + cards_new
 
 
 class CardAnswer(BaseModel):

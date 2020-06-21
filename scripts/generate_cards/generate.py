@@ -26,7 +26,8 @@ ANOTHER_CLOZE_FACTOR = 4
 EMPTY_CLOZE_FACTOR = 100
 
 # how often a space should be tolerated as a cloze
-TOLERATE_SPACE_FACTOR = 20
+# e.g. 5 means every 5 times a space is selected, it's used
+TOLERATE_SPACE_FACTOR = 100
 
 
 # how many most-common words will be replaced by clozes
