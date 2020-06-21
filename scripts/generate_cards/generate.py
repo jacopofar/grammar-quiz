@@ -2,7 +2,7 @@ import argparse
 from collections import Counter
 from csv import reader
 import json
-from random import randint, shuffle
+from random import Random
 from sys import maxunicode
 from unicodedata import category
 
@@ -19,11 +19,15 @@ PUNCT_TRANSL = dict.fromkeys(
     )
 
 
-# how often to add an extra cloze
-ANOTHER_CLOZE_FACTOR = 6
+# how likely is to add an extra cloze
+ANOTHER_CLOZE_FACTOR = 4
 
 # how often to add a fake cloze that doesn't replace anything
 EMPTY_CLOZE_FACTOR = 100
+
+# how often a space should be tolerated as a cloze
+TOLERATE_SPACE_FACTOR = 20
+
 
 # how many most-common words will be replaced by clozes
 WORD_MIN_RANK = 1000
@@ -90,7 +94,8 @@ def main_multi(sentence_file: str, link_file: str):
 
     most_commons = {}
     for l in langs:
-        # remove empty string, that's normalized punctuation
+        # Note that in here there is an empty string,
+        # that's normalized punctuation. Also, a space.
         word_counters[l].pop('', None)
         # remove the space character
         word_counters[l].pop('', None)
@@ -122,8 +127,8 @@ def main_multi(sentence_file: str, link_file: str):
     # this is because similar sentences are inserted close in time
     # by shuffling they will be inserted in random order and an unsorted
     # select in postgres will give them in that order in the current
-    # implementation. Decent random sampling from the DB is a bit expensive,
-    shuffle(pairs)
+    # implementation. Decent random sampling from the DB is a bit expensive
+    Random().shuffle(pairs)
     print('Shuffled')
     out = open('universal_cards.tsv', 'w')
     out_details = open('universal_cards.jsonl', 'w')
@@ -139,22 +144,37 @@ def main_multi(sentence_file: str, link_file: str):
         # we must be sure this is always valid or the cards are wrong!
         assert to_txt == ''.join(tokens)
         cloze_idx = 1
-        for _ in range(100):
-            if idx % 50_000 == 0:
-                print(f'Written {idx} cards out of {len(pairs)} so far')
-            to_replace_idx = randint(0, len(tokens) - 1)
+        if idx % 50_000 == 0:
+            print(f'Written {idx} cards out of {len(pairs)} so far')
+        # use the card content to make it deterministic
+        r = Random(to_txt)
+        # do a number of attempts to insert a cloze following some rules
+        for _ in range(20):
+            to_replace_idx = r.randint(0, len(tokens) - 1)
             # no cloze of a cloze
             if tokens[to_replace_idx].startswith('{{'):
                 continue
-            # do not put cloze after empty cloze
+            # do not put cloze after empty cloze or space
             if (
                     to_replace_idx > 0
-                    and tokens[to_replace_idx - 1].endswith('::-}}')):
+                    and (
+                        tokens[to_replace_idx - 1].endswith('::-}}')
+                        or tokens[to_replace_idx - 1].endswith(':: }}')
+                        )
+                    ):
                 continue
             # only the most common words
             if (normalized(tokens[to_replace_idx])
                     not in most_commons[to_lang]):
                 continue
+            if tokens[to_replace_idx] == ' ':
+                if r.randint(0, TOLERATE_SPACE_FACTOR) > 0:
+                    continue
+                # if the next element is a cloze, do not replace or would
+                # be ambiguous for the user
+                if (to_replace_idx < len(tokens) - 1
+                        and tokens[to_replace_idx + 1].startswith('{{')):
+                        continue
             # ignore forbidden words
             if tokens[to_replace_idx] in FORBIDDEN_CLOZE_TOKENS:
                 continue
@@ -167,8 +187,8 @@ def main_multi(sentence_file: str, link_file: str):
             ])
             cloze_idx += 1
 
-            if randint(0, EMPTY_CLOZE_FACTOR) == 0:
-                to_insert_idx = randint(0, len(tokens) - 1)
+            if r.randint(0, EMPTY_CLOZE_FACTOR) == 0:
+                to_insert_idx = r.randint(0, len(tokens) - 1)
                 # do it only if there'not a cloze on the right
                 # otherwise the user has no way to know this is a fake one
                 if (
@@ -180,7 +200,7 @@ def main_multi(sentence_file: str, link_file: str):
                     )
                     cloze_idx += 1
 
-            if randint(0, ANOTHER_CLOZE_FACTOR) == 0:
+            if r.randint(0, ANOTHER_CLOZE_FACTOR) == 0:
                 continue
             break
 

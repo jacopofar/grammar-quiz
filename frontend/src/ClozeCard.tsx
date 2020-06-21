@@ -125,7 +125,7 @@ function ClozeCard(props: CardProps) {
     <div>
       <Segment>
         <Divider horizontal>{props.card.fromLanguage}</Divider>
-        <Header size='medium'>{props.card.fromTxt}</Header>
+        <Header size='medium' dir={textDirection(props.card.fromLanguageCode)}>{props.card.fromTxt}</Header>
         <Divider horizontal>{props.card.toLanguage}</Divider>
         <Form onSubmit={nextAction} dir={textDirection(props.card.toLanguageCode)}>
           <Header size='medium'>{props.card.toTokens.map((e, i) => {
