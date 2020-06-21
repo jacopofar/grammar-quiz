@@ -1,6 +1,6 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
-import { Message, Segment } from 'semantic-ui-react'
+import { Loader, Message, Segment } from 'semantic-ui-react'
 import { Link } from 'react-router-dom'
 
 
@@ -10,6 +10,7 @@ import Quiz, { Card } from './Quiz'
 function Study(props: {loggedIn: boolean}) {
   const [sourceTargetLanguage, setSourceTargetLanguage] = useState<{src: string[], tgt: string}>()
   const [quizCards, setQuizCards] = useState<Card[]>()
+  const [loading, setLoading] = useState<boolean>(false)
 
   // draw the cards
   useEffect(() => {
@@ -34,6 +35,7 @@ function Study(props: {loggedIn: boolean}) {
         fromLanguageCode: c.from_language_code,
         toLanguageCode: c.to_language_code,
       })))
+      setLoading(false)
     }
     getQuizCards()
   }, [sourceTargetLanguage])
@@ -43,10 +45,17 @@ function Study(props: {loggedIn: boolean}) {
       <h2>
           Grammar quiz: exercise your grammar with sentences from Tatoeba
       </h2>
+      {loading ?
+          <Loader size='large' active>Loading sentences...</Loader>
+      :
+        null
+      }
       {(sourceTargetLanguage) ? null :
         <Segment>
           <LanguageSelector
-            onSelected={(src, tgt) => setSourceTargetLanguage({src, tgt})}
+            onSelected={(src, tgt) => {
+              setLoading(true)
+              setSourceTargetLanguage({src, tgt})}}
           />
           {props.loggedIn ?
             null

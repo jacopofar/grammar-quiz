@@ -20,8 +20,11 @@ const answerFromCloze = (cloze: string) => {
   }
 }
 
+/**
+ * Tells whether an answer is OK.
+ * It performs some checks on the punctuation and spaces and tolerates empty clozes.
+*/
 const isAnswerOK = (expected: string, answer: string) => {
-
   // tolerate an extra punctuation mark
   if (/['.,?!;。、？！' ]/.test(expected.slice(-1))) {
     expected = expected.slice(0, -1)
@@ -90,7 +93,7 @@ function ClozeCard(props: CardProps) {
   const [inIssueModal, setInIssueModal] = useState<boolean>(false)
 
   useEffect(() => {
-    // when the changes, hide the tips and reset the previous answers
+    // when the props changes, hide the tips and reset the previous answers
     setShowAnswers(false)
     const newClozes = props.card.toTokens.filter(t => t.startsWith('{{'))
     setClozes(newClozes)
