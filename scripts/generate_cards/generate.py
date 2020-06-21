@@ -28,6 +28,7 @@ EMPTY_CLOZE_FACTOR = 100
 # how often a space should be tolerated as a cloze
 TOLERATE_SPACE_FACTOR = 20
 
+
 # how many most-common words will be replaced by clozes
 WORD_MIN_RANK = 1000
 
@@ -95,6 +96,8 @@ def main_multi(sentence_file: str, link_file: str):
     for l in langs:
         # Note that in here there is an empty string,
         # that's normalized punctuation. Also, a space.
+        word_counters[l].pop('', None)
+        # remove the space character
         word_counters[l].pop('', None)
         most_commons[l] = set(
             w for w, _ in word_counters[l].most_common(WORD_MIN_RANK)
