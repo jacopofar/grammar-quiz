@@ -90,3 +90,15 @@ CREATE TABLE card_trouble (
     FOREIGN KEY (from_id, to_id) REFERENCES card,
     PRIMARY KEY (from_id, to_id, account_id)
 );
+
+-- free-form custom notes about cards
+CREATE TABLE card_note (
+    from_id     INTEGER                  NOT NULL,
+    to_id       INTEGER                  NOT NULL,
+    account_id  INTEGER                  NOT NULL,
+    ts          TIMESTAMP WITH TIME ZONE NOT NULL,
+    hint        TEXT,
+    explanation TEXT,
+    FOREIGN KEY (from_id, to_id) REFERENCES card,
+    PRIMARY KEY (to_id, account_id)
+);

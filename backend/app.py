@@ -63,8 +63,6 @@ async def draw_cards(qr: QuizRequest, request: Request):
     """
     current_user = request.session.get('id', 1)
 
-    # TODO would be nice to move queries to .sql files referred by name
-    # and have a concise helper for that.
     async with get_conn() as conn:
         cards = await conn.fetch(
             get_sql('draw_cards'),
@@ -94,18 +92,7 @@ async def register_answer(ans: CardAnswer, request: Request):
     current_user = request.session.get('id', 1)
     async with get_conn() as conn:
         await conn.execute(
-            """
-            INSERT INTO revlog (
-              from_id,
-              to_id,
-              account_id,
-              review_time,
-              answers,
-              expected_answers,
-              correct
-              )
-            VALUES ($1, $2, $3, current_timestamp, $4, $5, $6)
-            """,
+            get_sql('insert_revlog'),
             ans.from_id,
             ans.to_id,
             current_user,
@@ -143,15 +130,6 @@ async def register_answer(ans: CardAnswer, request: Request):
                     ans.to_id,
                     current_user
                 )
-        await conn.execute(
-            get_sql('insert_revlog'),
-            ans.from_id,
-            ans.to_id,
-            current_user,
-            ans.given_answers,
-            ans.expected_answers,
-            ans.correct
-        )
         return 'OK'
 
 
@@ -279,3 +257,46 @@ async def login(cred: UserLoginRequest, request: Request):
                 dict(error='Invalid credentials'),
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
+
+
+class NoteAboutCard(BaseModel):
+    from_id: int
+    to_id: int
+    hint: str
+    explanation: str
+
+
+@app.post("/take_note")
+async def take_note(note: NoteAboutCard, request: Request):
+    """Store a note about a card.
+
+    The user can register a note about a card, to be shown next time they
+    get the same sentence.
+    There are two notes: the hint, which is shown before an answer, and the
+    explanation, shown after.
+    """
+    current_user = request.session.get('id', 1)
+    if current_user == 1:
+        return JSONResponse(
+            dict(error='Not logged in, cannot take notes'),
+            status_code=status.HTTP_403_UNAUTHORIZED,
+        )
+    async with get_conn() as conn:
+        await conn.execute(
+            """
+            INSERT INTO card_note (
+                from_id,
+                to_id,
+                account_id,
+                ts,
+                hint,
+                explanation
+              )
+            VALUES ($1, $2, $3, current_timestamp, $4, $5)
+            """,
+            note.from_id,
+            note.to_id,
+            current_user,
+            note.hint,
+            note.explanation,
+        )

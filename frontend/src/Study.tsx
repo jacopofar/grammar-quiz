@@ -34,6 +34,8 @@ function Study(props: {loggedIn: boolean}) {
         repetition: false,
         fromLanguageCode: c.from_language_code,
         toLanguageCode: c.to_language_code,
+        hint: c.hint,
+        explanation: c.explanation
       })))
       setLoading(false)
     }
