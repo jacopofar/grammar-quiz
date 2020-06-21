@@ -30,10 +30,9 @@ function App() {
     <Router basename={process.env.PUBLIC_URL}>
       <Menu fixed='top' inverted>
         <Container>
-          <Menu.Item as='a' header>
-            Grammar quiz
+          <Menu.Item header>
+            <a href="/">Grammar quiz</a>
           </Menu.Item>
-          <Menu.Item><Link to="/">Home</Link></Menu.Item>
           <Dropdown item simple text='Menu'>
             <Dropdown.Menu>
             {loggedInUser?.loggedIn ?
