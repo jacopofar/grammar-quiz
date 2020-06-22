@@ -45,6 +45,11 @@ function Quiz(props: Props) {
   }, [props.cards])
 
 
+  const removeLastCard = () => {
+    // bleah
+    setCards(update(cards, {$splice: [[cards.length - 1, 1]]}))
+  }
+
   const handleAnswer = (expected: string[], given: string[], allCorrect: boolean) => {
     const card =  cards[cardIdx]
     axios.post('/register_answer', {
@@ -61,7 +66,7 @@ function Quiz(props: Props) {
       answers: given
     }]}))
     if (!allCorrect) {
-      //not correct, put a copy back in the queue but with repetition = true
+      // not correct, put a copy back in the queue but with repetition = true
       setCards(update(cards, {$push: [{
         ...card,
         repetition: true
@@ -86,8 +91,7 @@ function Quiz(props: Props) {
     if (cards.length > 0
         && cards[cards.length - 1].fromId === card.fromId
         && cards[cards.length - 1].toId === card.toId) {
-          // bleah
-          setCards(update(cards, {$splice: [[cards.length - 1, 1]]}))
+          removeLastCard()
     }
     setCardIdx(cardIdx + 1)
   }
@@ -97,7 +101,7 @@ function Quiz(props: Props) {
    */
   const takeNote = (card: Card, hint: string, explanation: string) => {
     if (card.hint === hint && card.explanation === explanation) {
-      // nothing to change
+      // nothing changed, nothing to send
       return
     }
     axios.post('/take_note', {
@@ -106,9 +110,17 @@ function Quiz(props: Props) {
       hint,
       explanation
     })
-    // TODO how does this play with the fact it is not reactive?
-    card.hint = hint
-    card.explanation = explanation
+    if (cards.length > 0
+      && cards[cards.length - 1].fromId === card.fromId
+      && cards[cards.length - 1].toId === card.toId) {
+        removeLastCard()
+        setCards(update(cards, {$push: [{
+          ...card,
+          repetition: true,
+          hint,
+          explanation
+        }]}))
+    }
   }
 
   if (cardIdx < cards.length){
