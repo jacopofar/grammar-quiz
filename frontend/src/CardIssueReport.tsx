@@ -36,7 +36,7 @@ function CardIssueReport(props: Props) {
           placeholder="what's up?"
           onChange={(e: any) => {setIssueDescription(e.target.value) }}
           />
-        <p>You will not get again this sentence</p>
+        <p>You will not get again this sentence, thanks for helping!</p>
         <Form.Button
           primary
           type='submit'

@@ -63,15 +63,49 @@ async def draw_cards(qr: QuizRequest, request: Request):
     """
     current_user = request.session.get('id', 1)
 
-    # TODO would be nice to move queries to .sql files referred by name
-    # and have a concise helper for that.
     async with get_conn() as conn:
-        cards = await conn.fetch(
-            get_sql('draw_cards'),
+        cards_new = await conn.fetch(
+            get_sql('draw_new_cards'),
             qr.target_lang,
             qr.source_langs,
             current_user)
-        return cards
+        if current_user == 1:
+            return cards_new
+
+        expired_cards = await conn.fetch(
+            get_sql('get_expired_cards'),
+            current_user)
+        # TODO postgres insists in merging cards and languages before the join
+        # with the user card state which is very selective
+        # this is a workaround, the join is done in the backend
+        languages_l = await conn.fetch(
+            'SELECT id, name, iso693_3 FROM language')
+        src_langs = {}
+        to_lang_id = set()
+        to_lang_name = None
+        for l in languages_l:
+            if l['iso693_3'] == qr.target_lang:
+                to_lang_id = l['id']
+                to_lang_name = l['name']
+
+            if l['iso693_3'] in qr.source_langs:
+                src_langs[l['id']] = (l['iso693_3'], l['name'])
+
+        expired_cards = [
+            dict(ec.items()) for ec in expired_cards
+            if ec['from_lang'] in src_langs and ec['to_lang'] == to_lang_id]
+
+        for ec in expired_cards:
+            ec['from_language_code'] = src_langs[ec['from_lang']][0]
+            ec['from_language'] = src_langs[ec['from_lang']][1]
+
+            ec['to_language_code'] = qr.target_lang
+            ec['to_language'] = to_lang_name
+
+            del ec['from_lang']
+            del ec['to_lang']
+
+        return expired_cards + cards_new
 
 
 class CardAnswer(BaseModel):
@@ -94,18 +128,7 @@ async def register_answer(ans: CardAnswer, request: Request):
     current_user = request.session.get('id', 1)
     async with get_conn() as conn:
         await conn.execute(
-            """
-            INSERT INTO revlog (
-              from_id,
-              to_id,
-              account_id,
-              review_time,
-              answers,
-              expected_answers,
-              correct
-              )
-            VALUES ($1, $2, $3, current_timestamp, $4, $5, $6)
-            """,
+            get_sql('insert_revlog'),
             ans.from_id,
             ans.to_id,
             current_user,
@@ -143,15 +166,6 @@ async def register_answer(ans: CardAnswer, request: Request):
                     ans.to_id,
                     current_user
                 )
-        await conn.execute(
-            get_sql('insert_revlog'),
-            ans.from_id,
-            ans.to_id,
-            current_user,
-            ans.given_answers,
-            ans.expected_answers,
-            ans.correct
-        )
         return 'OK'
 
 
@@ -279,3 +293,36 @@ async def login(cred: UserLoginRequest, request: Request):
                 dict(error='Invalid credentials'),
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
+
+
+class NoteAboutCard(BaseModel):
+    from_id: int
+    to_id: int
+    hint: str
+    explanation: str
+
+
+@app.post("/take_note")
+async def take_note(note: NoteAboutCard, request: Request):
+    """Store a note about a card.
+
+    The user can register a note about a card, to be shown next time they
+    get the same sentence.
+    There are two notes: the hint, which is shown before an answer, and the
+    explanation, shown after.
+    """
+    current_user = request.session.get('id', 1)
+    if current_user == 1:
+        return JSONResponse(
+            dict(error='Not logged in, cannot take notes'),
+            status_code=status.HTTP_403_UNAUTHORIZED,
+        )
+    async with get_conn() as conn:
+        await conn.execute(
+            get_sql('upsert_card_notes'),
+            note.from_id,
+            note.to_id,
+            current_user,
+            note.hint,
+            note.explanation,
+        )

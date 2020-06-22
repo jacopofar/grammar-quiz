@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Divider, Form, Header, Icon, Input, Label, Modal, Segment } from 'semantic-ui-react'
+import { Button, Divider, Form, Header, Icon, Input, Label, Modal, Segment, TextArea } from 'semantic-ui-react'
 import update from 'immutability-helper';
 
 import { Card } from './Quiz'
@@ -84,13 +84,20 @@ interface CardProps {
   onAnswer: (expected: string[], given: string [], allCorrect: boolean) => void
   onNextCard: () => void
   onTrouble: (card: Card, issueType: string, issueDescription: string) => void
+  onNoteTaking: (card: Card, hint: string, explanation: string) => void
 }
 
 function ClozeCard(props: CardProps) {
+  //clozes and associated answers
   const [clozes, setClozes] = useState<string[]>(['ERROR'])
   const [answers, setAnswers] = useState<string[]>(['ERROR'])
+  // whether answers should be shown
   const [showAnswers, setShowAnswers] = useState<boolean>(false)
+  // whether the user is seeing the modal for issue reporting
   const [inIssueModal, setInIssueModal] = useState<boolean>(false)
+  // free-form hint and explanations note an user can store
+  const [freeExplanation, setFreeExplanation] = useState<string>('')
+  const [freeHint, setFreeHint] = useState<string>('')
 
   useEffect(() => {
     // when the props changes, hide the tips and reset the previous answers
@@ -98,10 +105,16 @@ function ClozeCard(props: CardProps) {
     const newClozes = props.card.toTokens.filter(t => t.startsWith('{{'))
     setClozes(newClozes)
     setAnswers(newClozes.map(e => ''))
+    setFreeHint(props.card.hint || '')
+    setFreeExplanation(props.card.explanation || '')
+
   }, [props.card])
 
   const nextAction = () => {
-    if (showAnswers){
+    if (showAnswers) {
+      if (freeExplanation || freeHint) {
+        props.onNoteTaking(props.card, freeHint, freeExplanation)
+      }
       props.onNextCard()
     }
     else{
@@ -112,10 +125,14 @@ function ClozeCard(props: CardProps) {
     }
   }
 
+  /**
+   * Returns the appropriate direction for the text with the given ISO language code.
+   * This should be used for the whole UI element.
+  */
   const textDirection = (lang: string) => {
     if ([
-      "ara", "arq","heb", "arz", "uig", "pes", "acm", "urd", "yid", "pnb", "oar", "ary", "aii", "afb", "pus",
-      "snd", "div", "otk", "tmr", "syc", "phn", "jpa"
+      "ara", "arq","heb", "arz", "uig", "pes", "acm", "urd", "yid", "pnb", "oar",
+      "ary", "aii", "afb", "pus", "snd", "div", "otk", "tmr", "syc", "phn", "jpa"
       ].includes(lang)){
         return 'rtl'
       }
@@ -131,6 +148,11 @@ function ClozeCard(props: CardProps) {
         <Header size='medium' dir={textDirection(props.card.fromLanguageCode)}>{props.card.fromTxt}</Header>
         <Divider horizontal>{props.card.toLanguage}</Divider>
         <Form onSubmit={nextAction} dir={textDirection(props.card.toLanguageCode)}>
+          {props.card.hint ?
+            <p><strong>Hint:</strong>{props.card.hint}</p>
+            :
+            null
+          }
           <Header size='medium'>{props.card.toTokens.map((e, i) => {
             const idx=clozes.indexOf(e)
             if (idx !== -1) {
@@ -149,23 +171,46 @@ function ClozeCard(props: CardProps) {
           })}
           </Header>
           {showAnswers ?
-          <>
-            <Form.Button primary type='submit'> Next card <Icon name='angle right' /></Form.Button>
-            <Button
-              icon
-              labelPosition='left' color='red' onClick={(event) => {
-                setInIssueModal(true)
-                // it's in a form, prevent submit
-                event.preventDefault()
-                }}>
-              <Icon name='warning sign' />
-              Report issue
-            </Button>
+            <>
+              {props.card.explanation ?
+                <p><strong>Explanation:</strong>{props.card.explanation}</p>
+              :
+                null
+              }
+              <Form.Button primary type='submit'>Next card<Icon name='angle right'/></Form.Button>
+              <Button
+                icon
+                labelPosition='left' color='red' onClick={(event) => {
+                  setInIssueModal(true)
+                  // it's in a form, prevent submit
+                  event.preventDefault()
+                  }}>
+                <Icon name='warning sign' />
+                Report issue
+              </Button>
             </>
           :
             <Form.Button type='submit' positive><Icon name='check' />Submit</Form.Button>
           }
         </Form>
+        {showAnswers ?
+          <Form>
+            <Label>You can write yourself an hint to be shown next time with the question</Label>
+            <TextArea
+              placeholder="Hint..."
+              value={freeHint}
+              onChange={(e: any) => {setFreeHint(e.target.value)}}
+              />
+            <Label>You may write yourself a note about this sentence to be shown next time after you answer</Label>
+            <TextArea
+              placeholder="Explanation..."
+              value={freeExplanation}
+              onChange={(e: any) => {setFreeExplanation(e.target.value)}}
+              />
+          </Form>
+        :
+        null
+        }
       </Segment>
       <Modal size='large' open={inIssueModal} onClose={() => setInIssueModal(false)}>
         <Modal.Header>Report a problem with the sentence</Modal.Header>

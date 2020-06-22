@@ -1,6 +1,6 @@
+import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { Header, Segment, Table } from 'semantic-ui-react'
-import axios from 'axios'
 import update from 'immutability-helper';
 
 import ClozeCard from './ClozeCard'
@@ -16,6 +16,8 @@ export type Card = {
   repetition: boolean,
   fromLanguageCode: string
   toLanguageCode: string
+  hint: string
+  explanation: string
 }
 
 type Answer = {
@@ -67,6 +69,12 @@ function Quiz(props: Props) {
     }
   }
 
+  /**
+   * Handle an issue report. It represents some problem the user found on the current
+   * card. It is sent to the backend to keep track of it and also the card is removed
+   * from the state so the user doesn't see it again in this session.
+   * (It is also removed from future sessions, but that logic is in the backend)
+  */
   const handleWrongCard = (card: Card, issueType: string, issueDescription: string) => {
     axios.post('/report_issue', {
       from_id: card.fromId,
@@ -84,6 +92,25 @@ function Quiz(props: Props) {
     setCardIdx(cardIdx + 1)
   }
 
+  /**
+   * Signals to the backend the free-form notes an user took about a card.
+   */
+  const takeNote = (card: Card, hint: string, explanation: string) => {
+    if (card.hint === hint && card.explanation === explanation) {
+      // nothing to change
+      return
+    }
+    axios.post('/take_note', {
+      from_id: card.fromId,
+      to_id: card.toId,
+      hint,
+      explanation
+    })
+    // TODO how does this play with the fact it is not reactive?
+    card.hint = hint
+    card.explanation = explanation
+  }
+
   if (cardIdx < cards.length){
     return(
     <div>
@@ -92,6 +119,7 @@ function Quiz(props: Props) {
         onAnswer={handleAnswer}
         onNextCard={() => {setCardIdx(cardIdx + 1)}}
         onTrouble={handleWrongCard}
+        onNoteTaking={takeNote}
       />
       <Segment>
         <p>Sentence {cardIdx + 1} of {cards.length}, including repetitions</p>

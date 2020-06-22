@@ -1,7 +1,7 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { Button, Container, Dropdown, Grid, Menu } from 'semantic-ui-react'
-import { Link, HashRouter as Router, Route, Switch } from 'react-router-dom'
+import { HashRouter as Router, Route, Switch } from 'react-router-dom'
 
 import Login from './Login'
 import Register from './Register'
