@@ -23,11 +23,11 @@ PUNCT_TRANSL = dict.fromkeys(
 ANOTHER_CLOZE_FACTOR = 4
 
 # how often to add a fake cloze that doesn't replace anything
-EMPTY_CLOZE_FACTOR = 100
+EMPTY_CLOZE_FACTOR = 200
 
 # how often a space should be tolerated as a cloze
 # e.g. 5 means every 5 times a space is selected, it's used
-TOLERATE_SPACE_FACTOR = 100
+TOLERATE_SPACE_FACTOR = 200
 
 
 # how many most-common words will be replaced by clozes
