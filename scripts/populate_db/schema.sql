@@ -34,8 +34,8 @@ CREATE TABLE card_user_state (
     next_review TIMESTAMP WITH TIME ZONE NOT NULL,
     i_factor    SMALLINT,
     ef_factor   REAL,
-    FOREIGN KEY (from_id, to_id) REFERENCES card(from_id, to_id),
-    FOREIGN KEY (account_id) REFERENCES account,
+    FOREIGN KEY (from_id, to_id) REFERENCES card(from_id, to_id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES account ON DELETE CASCADE,
     PRIMARY KEY (from_id, to_id, account_id)
 );
 
@@ -48,8 +48,8 @@ CREATE TABLE revlog (
     answers          TEXT[]                   NOT NULL,
     expected_answers TEXT[]                   NOT NULL,
     correct          BOOLEAN                  NOT NULL,
-    FOREIGN KEY (from_id, to_id) REFERENCES card(from_id, to_id),
-    FOREIGN KEY (account_id) REFERENCES account,
+    FOREIGN KEY (from_id, to_id) REFERENCES card(from_id, to_id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES account ON DELETE CASCADE,
     PRIMARY KEY (from_id, to_id, account_id, review_time)
 );
 
@@ -87,7 +87,7 @@ CREATE TABLE card_trouble (
     ts          TIMESTAMP WITH TIME ZONE NOT NULL,
     description TEXT,
     issue_type  TEXT,
-    FOREIGN KEY (from_id, to_id) REFERENCES card,
+    FOREIGN KEY (from_id, to_id) REFERENCES card ON DELETE CASCADE,
     PRIMARY KEY (from_id, to_id, account_id)
 );
 
@@ -99,6 +99,6 @@ CREATE TABLE card_note (
     ts          TIMESTAMP WITH TIME ZONE NOT NULL,
     hint        TEXT,
     explanation TEXT,
-    FOREIGN KEY (from_id, to_id) REFERENCES card,
+    FOREIGN KEY (from_id, to_id) REFERENCES card ON DELETE CASCADE,
     PRIMARY KEY (from_id, to_id, account_id)
 );

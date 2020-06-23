@@ -20,7 +20,7 @@ PUNCT_TRANSL = dict.fromkeys(
 
 
 # how likely is to add an extra cloze
-ANOTHER_CLOZE_FACTOR = 4
+ANOTHER_CLOZE_FACTOR = 2
 
 # how often to add a fake cloze that doesn't replace anything
 EMPTY_CLOZE_FACTOR = 200
@@ -83,6 +83,9 @@ def main_multi(sentence_file: str, link_file: str):
         if idx % 200_000 == 0:
             print(f'Read {idx} rows from the sentences CSV so far')
         if len(text) > MAX_SENTENCE_LENGTH or len(text) < 20:
+            continue
+        # null value for the language, ignore it
+        if lang == '\\N':
             continue
         id_sents[int(_id)] = (lang, text)
         if lang not in word_counters:
