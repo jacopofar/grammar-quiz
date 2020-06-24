@@ -3,15 +3,9 @@ python:
   - '3.7'
 node_js:
   - 12
-services:
-  - postgresql
 
 addons:
   postgresql: "12"
-  apt:
-    packages:
-    - postgresql-12
-    - postgresql-client-12
 
 before_script:
   - psql -U postgres -c "CREATE USER testuser WITH PASSWORD 'secret' LOGIN;"
@@ -21,8 +15,7 @@ before_script:
 
 env:
   global:
-  - PGPORT=5433
-  - PG_CONN_STR="postgresql://testuser:secret@localhost:5433/grammarquiz"
+  - PG_CONN_STR="postgresql://testuser:secret@localhost:5432/grammarquiz"
   - SSO_GOOGLE_CLIENT_ID="fake"
   - SSO_GOOGLE_SECRET="fake"
   - SECRET_SESSION_KEY="fake"
