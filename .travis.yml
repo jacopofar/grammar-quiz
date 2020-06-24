@@ -12,19 +12,16 @@ addons:
     - postgresql-client-12
 
 before_install:
-# See here, Postgres 12 setup seems a bit quirky:
-# https://stackoverflow.com/questions/61734368/postgresql-12-on-travis-ci-taking-5-minutes-to-startup
-  - sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/12/main/postgresql.conf
-  - sudo pg_ctlcluster 12 main restart
-  - sh -c 'until pg_isready; do echo "Waiting for the DB to be up..."; sleep 2; done'
-  - psql -U postgres -c "CREATE USER testuser WITH PASSWORD 'secret' LOGIN;"
-  - psql -U postgres -c "CREATE DATABASE grammarquiz OWNER testuser;"
-  - psql -U testuser -f scripts/populate_db/schema.sql grammarquiz
-  - psql -U testuser -q -f tests/database_content.sql grammarquiz
+  - sh -c 'until pg_isready -p 5433; do echo "Waiting for the DB to be up..."; sleep 2; done'
+  - psql -U postgres -p 5433 -c "CREATE USER testuser WITH PASSWORD 'secret' LOGIN;"
+  - psql -U postgres -p 5433 -c "CREATE DATABASE grammarquiz OWNER testuser;"
+  - psql -U testuser -p 5433 -f scripts/populate_db/schema.sql grammarquiz
+  - psql -U testuser -p 5433 -q -f tests/database_content.sql grammarquiz
 
 env:
   global:
-  - PG_CONN_STR="postgresql://testuser:secret@localhost:5432/grammarquiz"
+  - PGPORT=5433
+  - PG_CONN_STR="postgresql://testuser:secret@localhost:5433/grammarquiz"
   - SSO_GOOGLE_CLIENT_ID="fake"
   - SSO_GOOGLE_SECRET="fake"
   - SECRET_SESSION_KEY="fake"
