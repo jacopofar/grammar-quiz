@@ -14,13 +14,14 @@ addons:
     - postgresql-client-12
 
 before_script:
-  - psql -c "CREATE USER testuser WITH PASSWORD 'secret' LOGIN;" -U postgres
-  - psql -c "CREATE DATABASE grammarquiz OWNER testuser;" -U postgres
-  - psql -U testuser -f scripts/populate_db/schema.sql grammarquiz
-  - psql -U testuser -q -f tests/database_content.sql grammarquiz
+  - psql -U postgres -p 5433 -c "CREATE USER testuser WITH PASSWORD 'secret' LOGIN;"
+  - psql -U postgres -p 5433 -c "CREATE DATABASE grammarquiz OWNER testuser;"
+  - psql -U testuser -p 5433 -f scripts/populate_db/schema.sql grammarquiz
+  - psql -U testuser -p 5433 -q -f tests/database_content.sql grammarquiz
 
 env:
   global:
+  - PGPORT=5433
   - PG_CONN_STR="postgresql://testuser:secret@localhost:5433/grammarquiz"
   - SSO_GOOGLE_CLIENT_ID="fake"
   - SSO_GOOGLE_SECRET="fake"
