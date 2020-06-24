@@ -12,6 +12,8 @@ addons:
     - postgresql-client-12
 
 before_install:
+  - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
+  - sudo service postgresql restart
   - sh -c 'until pg_isready -p 5433; do echo "Waiting for the DB to be up..."; sleep 2; done'
   - psql -U postgres -p 5433 -c "CREATE USER testuser WITH PASSWORD 'secret' LOGIN;"
   - psql -U postgres -p 5433 -c "CREATE DATABASE grammarquiz OWNER testuser;"
@@ -20,7 +22,6 @@ before_install:
 
 env:
   global:
-  - PGPORT=5433
   - PG_CONN_STR="postgresql://testuser:secret@localhost:5433/grammarquiz"
   - SSO_GOOGLE_CLIENT_ID="fake"
   - SSO_GOOGLE_SECRET="fake"
