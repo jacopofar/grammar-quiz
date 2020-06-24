@@ -103,8 +103,20 @@ async def create_staging_table(conn: Connection):
             from_txt     TEXT     NOT NULL,
             original_txt TEXT     NOT NULL,
             to_tokens    TEXT[]   NOT NULL
-        );
+        ) PARTITION BY HASH (from_id, to_id);
         """)
+        for i in range(10):
+            await conn.execute(f"""
+        CREATE UNLOGGED TABLE card_stg_h{i}
+            PARTITION OF card_stg
+                FOR VALUES WITH (MODULUS 10, REMAINDER {i});
+        """)
+
+
+async def delete_staging_table(conn: Connection):
+    """Delete the staging table."""
+    async with conn.transaction():
+        await conn.execute("DROP TABLE card_stg")
 
 
 async def ingest_cards_file(
@@ -145,46 +157,48 @@ async def ingest_cards_file(
         )
 
 
-async def merge_tables(conn: Connection):
+async def merge_tables(conn: Connection, p_id: int):
     """Merge the staging table and the final one."""
     async with conn.transaction():
         logger.debug('Detecting cards no longer valid...')
-        res = await conn.fetchrow("""
+        res = await conn.fetchrow(f"""
             SELECT count(1) AS to_delete
-            FROM card c
-                LEFT JOIN card_stg s
+            FROM card_h{p_id} c
+                LEFT JOIN card_stg_h{p_id} s
                 USING (from_id, to_id)
             WHERE c.from_id IS NULL
             """)
-        if res['to_delete'] > 1000:
+        if res['to_delete'] > 100:
             # around 10 cards are deleted per day, too many may be an issue with the
             # file, so better stop rather than deleting everything
             raise ValueError(f"Suspect number of cards to delete: {res['to_delete']}")
         if res['to_delete'] > 0:
-            logger.info('Deleting these cards')
+            logger.info(f"Deleting these {res['to_delete']} cards")
             await conn.execute("""
                 DELETE
-                FROM card
+                FROM card_h{p_id}
                 WHERE
                     (from_lang, to_lang) IN
                     (
                         SELECT
                             c.from_lang,
                             c.to_lang
-                        FROM card c
-                            LEFT JOIN card_stg s
+                        FROM card_h{p_id} c
+                            LEFT JOIN card_stg_h{p_id} s
                                 USING (from_id, to_id)
                         WHERE
                             c.from_id IS NULL)
                 """)
+        else:
+            logger.info('There were no cards to delete')
         logger.info('Updating the cards which changed...')
-        res = await conn.fetchrow("""
-                UPDATE card c
+        res = await conn.fetchrow(f"""
+                UPDATE card_h{p_id} c
                 SET
                     from_txt     = s.from_txt,
                     original_txt = s.original_txt,
                     to_tokens    = s.to_tokens
-                FROM card_stg s
+                FROM card_stg_h{p_id} s
                 WHERE
                     c.from_id = s.from_id
                 AND c.to_id = s.to_id
@@ -195,18 +209,18 @@ async def merge_tables(conn: Connection):
                     )
             """)
         logger.info(f'Update successful: changes {res}')
-        res = await conn.fetchrow("""
-        INSERT INTO card
+        logger.info('Inserting new cards...')
+        res = await conn.fetchrow(f"""
+        INSERT INTO card_h{p_id}
             SELECT
                 s.*
             FROM
-                card_stg s
-                LEFT JOIN card c
+                card_stg_h{p_id} s
+                LEFT JOIN card_h{p_id} c
                     USING(from_id, to_id)
             WHERE
                 c.from_lang IS NULL
         """)
-        logger.info('Inserting new cards...')
 
 
 async def main(jsonl_file: str):
@@ -217,7 +231,10 @@ async def main(jsonl_file: str):
     logger.info('Staging table ready, ingesting the cards...')
     await ingest_cards_file(conn, jsonl_file, language_ids)
     logger.info(f'Staging table ingested!')
-    await merge_tables(conn)
+    for i in range(10):
+        logger.info(f'Merging partition {i}')
+        await merge_tables(conn, i)
+    await delete_staging_table(conn)
     # TODO here add logic to delete the staging table afterwards!
     # TODO and maybe also a VACUUM ANALYZE to be safe
     await conn.close()

@@ -13,7 +13,48 @@ CREATE TABLE card (
     original_txt TEXT     NOT NULL,
     to_tokens    TEXT[]   NOT NULL,
     PRIMARY KEY (from_id, to_id)
-);
+) PARTITION BY HASH (from_id, to_id);
+
+
+CREATE TABLE card_h0
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 0);
+
+CREATE TABLE card_h1
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 1);
+
+CREATE TABLE card_h2
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 2);
+
+CREATE TABLE card_h3
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 3);
+
+CREATE TABLE card_h4
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 4);
+
+CREATE TABLE card_h5
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 5);
+
+CREATE TABLE card_h6
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 6);
+
+CREATE TABLE card_h7
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 7);
+
+CREATE TABLE card_h8
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 8);
+
+CREATE TABLE card_h9
+    PARTITION OF card
+        FOR VALUES WITH (MODULUS 10, REMAINDER 9);
 
 CREATE INDEX card_from_lang_to_lang_index
     ON card(from_lang, to_lang);
