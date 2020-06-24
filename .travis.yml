@@ -12,7 +12,7 @@ addons:
     - postgresql-client-12
 
 before_install:
-# See here:
+# See here, Postgres 12 setup seems a bit quirky:
 # https://stackoverflow.com/questions/61734368/postgresql-12-on-travis-ci-taking-5-minutes-to-startup
   - sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/12/main/postgresql.conf
   - sudo cp /etc/postgresql/{9.3,12}/main/pg_hba.conf
