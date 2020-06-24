@@ -76,7 +76,6 @@ CREATE TABLE card_user_state (
     i_factor    SMALLINT,
     ef_factor   REAL,
     FOREIGN KEY (from_id, to_id) REFERENCES card(from_id, to_id) ON DELETE CASCADE,
-    FOREIGN KEY (account_id) REFERENCES account ON DELETE CASCADE,
     PRIMARY KEY (from_id, to_id, account_id)
 );
 
@@ -90,7 +89,6 @@ CREATE TABLE revlog (
     expected_answers TEXT[]                   NOT NULL,
     correct          BOOLEAN                  NOT NULL,
     FOREIGN KEY (from_id, to_id) REFERENCES card(from_id, to_id) ON DELETE CASCADE,
-    FOREIGN KEY (account_id) REFERENCES account ON DELETE CASCADE,
     PRIMARY KEY (from_id, to_id, account_id, review_time)
 );
 

@@ -14,7 +14,8 @@ addons:
     - postgresql-client-12
 
 before_install:
-  - sudo ls /etc/postgresql/
+# setting up postgres 12 is quite a pain, see:
+# https://travis-ci.community/t/test-against-postgres-12/6768/8
   - sudo cp /etc/postgresql/10/main/pg_hba.conf /etc/postgresql/12/main/pg_hba.conf
   - sudo pg_ctlcluster 12 main restart
   - sh -c 'until pg_isready -p 5433; do echo "Waiting for the DB to be up..."; sleep 2; done'
