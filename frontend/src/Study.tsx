@@ -11,6 +11,7 @@ function Study(props: {loggedIn: boolean}) {
   const [sourceTargetLanguage, setSourceTargetLanguage] = useState<{src: string[], tgt: string}>()
   const [quizCards, setQuizCards] = useState<Card[]>()
   const [loading, setLoading] = useState<boolean>(false)
+  const [errorMessage, setErrorMessage] = useState<string>('')
 
   // draw the cards
   useEffect(() => {
@@ -18,26 +19,29 @@ function Study(props: {loggedIn: boolean}) {
       return
     }
     async function getQuizCards() {
-      const cards = (await axios.post('/draw_cards', {
-        target_lang: sourceTargetLanguage?.tgt,
-        source_langs: sourceTargetLanguage?.src
-      })).data
-
-      setQuizCards(cards.map((c: any) => ({
-        fromId: c.from_id,
-        fromLanguage: c.from_language,
-        fromTxt: c.from_text,
-        toTxt: c.to_text,
-        toId: c.to_id,
-        toLanguage: c.to_language,
-        toTokens: c.to_tokens,
-        repetition: false,
-        fromLanguageCode: c.from_language_code,
-        toLanguageCode: c.to_language_code,
-        hint: c.hint,
-        explanation: c.explanation
-      })))
-      setLoading(false)
+      try {
+        const cards = (await axios.post('/draw_cards', {
+          target_lang: sourceTargetLanguage?.tgt,
+          source_langs: sourceTargetLanguage?.src
+        })).data
+        setQuizCards(cards.map((c: any) => ({
+          fromId: c.from_id,
+          fromLanguage: c.from_language,
+          fromTxt: c.from_text,
+          toTxt: c.to_text,
+          toId: c.to_id,
+          toLanguage: c.to_language,
+          toTokens: c.to_tokens,
+          repetition: false,
+          fromLanguageCode: c.from_language_code,
+          toLanguageCode: c.to_language_code,
+          hint: c.hint,
+          explanation: c.explanation
+        })))
+        setLoading(false)
+      }
+      catch (e){
+        setErrorMessage(`${e} - ${JSON.stringify(e)}`)      }
     }
     getQuizCards()
   }, [sourceTargetLanguage])
@@ -47,8 +51,17 @@ function Study(props: {loggedIn: boolean}) {
       <h2>
           Grammar quiz: exercise your grammar with sentences from Tatoeba
       </h2>
-      {loading ?
-          <Loader size='large' active>Loading sentences...</Loader>
+      {errorMessage ?
+        <Message negative>
+          <Message.Header>Something went wrong :(</Message.Header>
+          <p>Computers are unrealiable, aren't they?</p>
+          <p>Error description: {errorMessage}</p>
+        </Message>
+      :
+        null
+      }
+      {loading && (!errorMessage)?
+          <Loader size='large' active inline='centered'>Loading sentences...</Loader>
       :
         null
       }
