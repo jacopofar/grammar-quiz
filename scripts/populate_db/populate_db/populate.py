@@ -235,7 +235,6 @@ async def main(jsonl_file: str):
         logger.info(f'Merging partition {i}')
         await merge_tables(conn, i)
     await delete_staging_table(conn)
-    # TODO here add logic to delete the staging table afterwards!
     # TODO and maybe also a VACUUM ANALYZE to be safe
     await conn.close()
 
