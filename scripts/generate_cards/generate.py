@@ -22,6 +22,9 @@ PUNCT_TRANSL = dict.fromkeys(
 # how likely is to add an extra cloze
 ANOTHER_CLOZE_FACTOR = 2
 
+# how many clozes per sentence, it never goes above
+MAX_CLOZES = 3
+
 # how often to add a fake cloze that doesn't replace anything
 EMPTY_CLOZE_FACTOR = 200
 
@@ -34,7 +37,7 @@ TOLERATE_SPACE_FACTOR = 200
 WORD_MIN_RANK = 1000
 
 # evil evil words to not cover with the cloze
-FORBIDDEN_CLOZE_TOKENS = {'Tom', 'Mary', 'Muriel', 'Layla'}
+FORBIDDEN_CLOZE_TOKENS = {'Layla', 'Maria', 'Mary', 'Muriel', 'Tom'}
 
 # how long (characters) can a sentence be to be accepted
 MAX_SENTENCE_LENGTH = 250
@@ -70,7 +73,7 @@ def tokenize(text: str, lang: str):
 def main_multi(sentence_file: str, link_file: str):
     """Produce the cloze deletion cards.
 
-    This will produce them for all the language pairs!.
+    This will produce them for all the language pairs!
     """
     sents = reader(open(sentence_file), delimiter='\t')
     links = reader(open(link_file), delimiter='\t')
@@ -154,6 +157,8 @@ def main_multi(sentence_file: str, link_file: str):
         r = Random(to_txt)
         # do a number of attempts to insert a cloze following some rules
         for _ in range(20):
+            if cloze_idx > MAX_CLOZES:
+                break
             to_replace_idx = r.randint(0, len(tokens) - 1)
             # no cloze of a cloze
             if tokens[to_replace_idx].startswith('{{'):
@@ -190,6 +195,8 @@ def main_multi(sentence_file: str, link_file: str):
                 '}}'
             ])
             cloze_idx += 1
+            if cloze_idx > MAX_CLOZES:
+                continue
 
             if r.randint(0, EMPTY_CLOZE_FACTOR) == 0:
                 to_insert_idx = r.randint(0, len(tokens) - 1)
@@ -203,6 +210,8 @@ def main_multi(sentence_file: str, link_file: str):
                         '{{c' + str(cloze_idx) + '::-}}'
                     )
                     cloze_idx += 1
+                    if cloze_idx > MAX_CLOZES:
+                        continue
 
             if r.randint(0, ANOTHER_CLOZE_FACTOR) == 0:
                 continue
