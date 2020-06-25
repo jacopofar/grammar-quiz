@@ -28,6 +28,7 @@ type Answer = {
 
 interface Props {
   cards: Card[]
+  loggedIn: boolean
 }
 
 function Quiz(props: Props) {
@@ -132,6 +133,7 @@ function Quiz(props: Props) {
         onNextCard={() => {setCardIdx(cardIdx + 1)}}
         onTrouble={handleWrongCard}
         onNoteTaking={takeNote}
+        loggedIn={props.loggedIn}
       />
       <Segment>
         <p>Sentence {cardIdx + 1} of {cards.length}, including repetitions</p>

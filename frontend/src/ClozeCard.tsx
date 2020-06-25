@@ -80,7 +80,8 @@ function ClozeField(props: ClozeFieldProps) {
 }
 
 interface CardProps {
-  card: Card,
+  card: Card
+  loggedIn: boolean
   onAnswer: (expected: string[], given: string [], allCorrect: boolean) => void
   onNextCard: () => void
   onTrouble: (card: Card, issueType: string, issueDescription: string) => void
@@ -193,7 +194,12 @@ function ClozeCard(props: CardProps) {
             <Form.Button type='submit' positive><Icon name='check' />Submit</Form.Button>
           }
         </Form>
-        {showAnswers ?
+        {props.loggedIn ?
+          null
+        :
+          <Label>Log in to write annotations on a card. It's free!</Label>
+        }
+        {showAnswers && props.loggedIn ?
           <Form>
             <Label>You can write yourself an hint to be shown next time with the question</Label>
             <TextArea

@@ -87,7 +87,8 @@ function Study(props: {loggedIn: boolean}) {
       }
       {quizCards ?
         <Quiz
-          cards={quizCards}/>
+          cards={quizCards}
+          loggedIn={props.loggedIn}/>
         : null
       }
     </>

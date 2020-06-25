@@ -57,20 +57,19 @@ function Register() {
                 }
               }
               } />
-            {errorMsg ?
+          </Form.Group>
+          {errorMsg ?
             <Label color='red' prompt>
               {errorMsg}
             </Label>
             :
             null}
-          </Form.Group>
           <Form.Checkbox
             label='I understand and accept the privacy notice'
             checked={acceptedPrivacy}
             onChange={()=>{setAcceptedPrivacy(!acceptedPrivacy)}}
             />
-            <p color='red'>Ciaone</p>
-          <Form.Button primary disabled={!acceptedPrivacy} onClick={createAccount}>Create account</Form.Button>
+          <Form.Button primary disabled={(!acceptedPrivacy || errorMsg.length > 0)} onClick={createAccount}>Create account</Form.Button>
       </Form>
       <Divider horizontal>Or</Divider>
       <Form>
