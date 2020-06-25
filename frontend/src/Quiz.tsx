@@ -28,6 +28,7 @@ type Answer = {
 
 interface Props {
   cards: Card[]
+  loggedIn: boolean
 }
 
 function Quiz(props: Props) {
@@ -45,9 +46,16 @@ function Quiz(props: Props) {
   }, [props.cards])
 
 
+  /**
+   * Removes last card and return the list of cards
+   * NOTE: chyangign the state is an async operation. So if you want to change the
+   * state again use the return value of this function which is the new state, do
+   * not use the state after calling it
+  */
   const removeLastCard = () => {
-    // bleah
-    setCards(update(cards, {$splice: [[cards.length - 1, 1]]}))
+    const newCards = update(cards, {$splice: [[cards.length - 1, 1]]})
+    setCards(newCards)
+    return newCards
   }
 
   const handleAnswer = (expected: string[], given: string[], allCorrect: boolean) => {
@@ -101,7 +109,7 @@ function Quiz(props: Props) {
    */
   const takeNote = (card: Card, hint: string, explanation: string) => {
     if (card.hint === hint && card.explanation === explanation) {
-      // nothing changed, nothing to send
+      // nothing changed, nothing to do
       return
     }
     axios.post('/take_note', {
@@ -113,8 +121,8 @@ function Quiz(props: Props) {
     if (cards.length > 0
       && cards[cards.length - 1].fromId === card.fromId
       && cards[cards.length - 1].toId === card.toId) {
-        removeLastCard()
-        setCards(update(cards, {$push: [{
+        const newCards = removeLastCard()
+        setCards(update(newCards, {$push: [{
           ...card,
           repetition: true,
           hint,
@@ -132,6 +140,7 @@ function Quiz(props: Props) {
         onNextCard={() => {setCardIdx(cardIdx + 1)}}
         onTrouble={handleWrongCard}
         onNoteTaking={takeNote}
+        loggedIn={props.loggedIn}
       />
       <Segment>
         <p>Sentence {cardIdx + 1} of {cards.length}, including repetitions</p>
