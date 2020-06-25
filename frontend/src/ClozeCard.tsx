@@ -111,6 +111,15 @@ function ClozeCard(props: CardProps) {
 
   }, [props.card])
 
+  /**
+   * Called when the form is submitted. This has two cases:
+   *
+   * * if the user was inserting the answers, they are sent to the server and the correct results are shown.
+   * * if the correct results were already being shown, the notes (if any) are stored and props.onNextCard() is called.
+   *
+   * This is in the same forum allowing it to react to Enter key or the equivalent on mobile
+   *
+  */
   const nextAction = () => {
     if (showAnswers) {
       if (freeExplanation || freeHint) {
@@ -118,7 +127,7 @@ function ClozeCard(props: CardProps) {
       }
       props.onNextCard()
     }
-    else{
+    else {
       setShowAnswers(true)
       props.onAnswer(clozes.map(answerFromCloze), answers, answers.filter((a, i) => {
         return !isAnswerOK(answerFromCloze(clozes[i]), a)
