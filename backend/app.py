@@ -109,13 +109,13 @@ async def draw_cards(qr: QuizRequest, request: Request):
         src_langs = {}
         to_lang_id = set()
         to_lang_name = None
-        for l in languages_l:
-            if l['iso693_3'] == qr.target_lang:
-                to_lang_id = l['id']
-                to_lang_name = l['name']
+        for lng in languages_l:
+            if lng['iso693_3'] == qr.target_lang:
+                to_lang_id = lng['id']
+                to_lang_name = lng['name']
 
             if l['iso693_3'] in qr.source_langs:
-                src_langs[l['id']] = (l['iso693_3'], l['name'])
+                src_langs[lng['id']] = (lng['iso693_3'], lng['name'])
 
         expired_cards = [
             dict(ec.items()) for ec in expired_cards
