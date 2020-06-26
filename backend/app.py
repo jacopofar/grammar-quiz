@@ -41,12 +41,26 @@ def index():
 
 
 @app.get("/languages")
-async def get_languages():
-    """Return list of all available languages."""
+async def get_languages(request: Request):
+    """Return list of all available languages and latest used ones."""
+    current_user = request.session.get('id', 1)
+
     async with get_conn() as conn:
-        return await conn.fetch("""
+        langs = await conn.fetch("""
             SELECT iso693_3, name FROM language
             """)
+        latest = await conn.fetchrow(
+            """
+            SELECT
+                src_langs, tgt_lang
+            FROM latest_language
+                WHERE account_id = $1
+            """,
+            current_user)
+        if latest is None:
+            return dict(languages=langs)
+        else:
+            return dict(languages=langs, selected=latest)
 
 
 class QuizRequest(BaseModel):
@@ -72,6 +86,18 @@ async def draw_cards(qr: QuizRequest, request: Request):
         if current_user == 1:
             return cards_new
 
+        # store the selected language so next time the menu can show it directly
+        await conn.execute(
+            'DELETE FROM latest_language WHERE account_id=$1', current_user)
+        await conn.execute(
+            """
+            INSERT INTO latest_language(
+                account_id, src_langs, tgt_lang
+                ) VALUES ($1, $2, $3)""",
+            current_user,
+            qr.source_langs,
+            qr.target_lang
+                )
         expired_cards = await conn.fetch(
             get_sql('get_expired_cards'),
             current_user)
@@ -121,8 +147,8 @@ class CardAnswer(BaseModel):
 async def register_answer(ans: CardAnswer, request: Request):
     """Register the answer an user gave to a card.
 
-    This is used both to decide whether and when to show the card again and to
-    collect information about which words and sentences are hard and which
+    This is used both to decide whether and when to show the card again and
+    to collect information about which words and sentences are hard and which
     mistakes are the most common.
     """
     current_user = request.session.get('id', 1)

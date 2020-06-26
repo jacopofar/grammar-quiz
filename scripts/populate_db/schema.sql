@@ -141,3 +141,10 @@ CREATE TABLE card_note (
     FOREIGN KEY (from_id, to_id) REFERENCES card ON DELETE CASCADE,
     PRIMARY KEY (from_id, to_id, account_id)
 );
+
+-- latest used languages
+CREATE TABLE latest_language (
+    account_id  INTEGER   NOT NULL PRIMARY KEY,
+    src_langs   TEXT[]    NOT NULL,
+    tgt_lang    TEXT      NOT NULL
+);

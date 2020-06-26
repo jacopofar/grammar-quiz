@@ -71,6 +71,7 @@ function Study(props: {loggedIn: boolean}) {
             onSelected={(src, tgt) => {
               setLoading(true)
               setSourceTargetLanguage({src, tgt})}}
+            loggedIn={props.loggedIn}
           />
           {props.loggedIn ?
             null
