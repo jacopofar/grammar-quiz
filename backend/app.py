@@ -42,8 +42,7 @@ def index():
 
 @app.get("/languages")
 async def get_languages(request: Request):
-    """Return list of all available languages and latest used ones.
-    """
+    """Return list of all available languages and latest used ones."""
     current_user = request.session.get('id', 1)
 
     async with get_conn() as conn:
