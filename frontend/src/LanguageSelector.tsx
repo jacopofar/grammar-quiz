@@ -4,6 +4,7 @@ import { Button, Dropdown, DropdownProps, Label, Form } from 'semantic-ui-react'
 
 interface Props {
   onSelected: (src: string[], tgt: string) => void
+  loggedIn: boolean
 }
 
 function LanguageSelector(props: Props) {
@@ -14,11 +15,17 @@ function LanguageSelector(props: Props) {
 
   useEffect(() => {
     async function loadLanguageList() {
-        const mods = (await axios.get('/languages')).data
-        setLanguages(mods)
+        const langs = (await axios.get('/languages')).data
+        setLanguages(langs.languages)
+        // if the user is logged in, retrieve their latest languages
+        // and initialize the form to them
+        if (langs.selected) {
+          setSrcLangs(langs.selected.src_langs)
+          setTgtLang(langs.selected.tgt_lang)
+        }
     }
     loadLanguageList()
-  }, [])
+  }, [props.loggedIn])
 
   const handleSourceChange = (e: any, data: DropdownProps ) => {
     setSrcLangs(data.value as string[])
@@ -48,6 +55,7 @@ function LanguageSelector(props: Props) {
         search
         selection
         clearable
+        value={tgtLang}
         options={languages
           .filter(l => !srcLangs?.includes(l.iso693_3))
           .map(l => ({key: l.iso693_3, text: l.name, value: l.iso693_3}))}
@@ -64,6 +72,7 @@ function LanguageSelector(props: Props) {
       search
       selection
       clearable
+      value={srcLangs}
       options={languages
         .filter(l => l.iso693_3 !== tgtLang)
         .map(l => ({key: l.iso693_3, text: l.name, value: l.iso693_3}))}
