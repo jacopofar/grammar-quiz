@@ -1,6 +1,7 @@
 # avoid accidental export of datasets
 scripts/generate_cards/*.csv
 scripts/generate_cards/*.jsonl
+scripts/*.jsonl
 sentences.*
 links.*
 frontend/node_modules
