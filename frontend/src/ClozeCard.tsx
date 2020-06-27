@@ -58,6 +58,8 @@ function ClozeField(props: ClozeFieldProps) {
     <span>
       <Input
         autoFocus={props.autoFocus}
+        label={{ basic: true, content: 'test hint' }}
+        labelPosition='left'
         autoCapitalize="off"
         autoComplete="off"
         autoCorrect="off"

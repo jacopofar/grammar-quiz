@@ -43,7 +43,7 @@ async def store_language_codes(conn: Connection) -> Dict[str, int]:
         for lng in res:
             languages_ids[lng['iso693_3']] = (lng['id'], lng['name'])
             if max_id < lng['id']:
-                max_id = languages_ids['id']
+                max_id = lng['id']
     for iso, name in ISO_693_3.items():
         if iso in languages_ids:
             pre_name = languages_ids[iso][1]
