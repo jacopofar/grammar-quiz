@@ -17,8 +17,11 @@ This project will be completely FOSS and the produced data will be published whe
 
 ## How to run
 
-First you need to import the Tatoeba data into a local Postgres DB. Look at the `scripts/` folder for the various steps
- and relative instructions.
+First you need to import the Tatoeba data into a local Postgres DB. Look at the `scripts` folder for the various steps
+ and relative instructions. There are a few steps:
+ * build the lemma dataset, using a dump of en.wiktionary to extract lists of inflected words
+ * generate the cards from an export of Tatoeba sentences
+ * Load the cards into a database, this step is incremental and can also update an existing database
 
 ### Run locally
 
