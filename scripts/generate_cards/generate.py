@@ -100,14 +100,14 @@ def main_multi(sentence_file: str, link_file: str):
     print(f'Imported {len(id_sents)} sentences')
 
     most_commons = {}
-    for l in langs:
+    for lng in langs:
         # Note that in here there is an empty string,
         # that's normalized punctuation. Also, a space.
-        word_counters[l].pop('', None)
+        word_counters[lng].pop('', None)
         # remove the space character
-        word_counters[l].pop('', None)
-        most_commons[l] = set(
-            w for w, _ in word_counters[l].most_common(WORD_MIN_RANK)
+        word_counters[lng].pop('', None)
+        most_commons[lng] = set(
+            w for w, _ in word_counters[lng].most_common(WORD_MIN_RANK)
             )
     del word_counters
 
@@ -135,7 +135,7 @@ def main_multi(sentence_file: str, link_file: str):
     # by shuffling they will be inserted in random order and an unsorted
     # select in postgres will give them in that order in the current
     # implementation. Decent random sampling from the DB is a bit expensive
-    Random().shuffle(pairs)
+    Random(42).shuffle(pairs)
     print('Shuffled')
     out = open('universal_cards.tsv', 'w')
     out_details = open('universal_cards.jsonl', 'w')
@@ -183,7 +183,7 @@ def main_multi(sentence_file: str, link_file: str):
                 # be ambiguous for the user
                 if (to_replace_idx < len(tokens) - 1
                         and tokens[to_replace_idx + 1].startswith('{{')):
-                        continue
+                    continue
             # ignore forbidden words
             if tokens[to_replace_idx] in FORBIDDEN_CLOZE_TOKENS:
                 continue
