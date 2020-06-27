@@ -40,10 +40,10 @@ async def store_language_codes(conn: Connection) -> Dict[str, int]:
     max_id = 0
     async with conn.transaction():
         res = await conn.fetch('SELECT id, name, iso693_3 FROM language')
-        for l in res:
-            languages_ids[l['iso693_3']] = (l['id'], l['name'])
-            if max_id < l['id']:
-                max_id = l['id']
+        for lng in res:
+            languages_ids[lng['iso693_3']] = (lng['id'], lng['name'])
+            if max_id < lng['id']:
+                max_id = languages_ids['id']
     for iso, name in ISO_693_3.items():
         if iso in languages_ids:
             pre_name = languages_ids[iso][1]
@@ -230,7 +230,7 @@ async def main(jsonl_file: str):
     await create_staging_table(conn)
     logger.info('Staging table ready, ingesting the cards...')
     await ingest_cards_file(conn, jsonl_file, language_ids)
-    logger.info(f'Staging table ingested!')
+    logger.info('Staging table ingested!')
     for i in range(10):
         logger.info(f'Merging partition {i}')
         await merge_tables(conn, i)
