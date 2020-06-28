@@ -9,9 +9,25 @@ import './ClozeCard.css'
 /**
  * Extract the answer part from a Cloze.
  * E.g. from '{{c1::Paris}}' gets 'Paris'
+ * from '{{c1:halten:halt}}' gets 'halt'
 */
 const answerFromCloze = (cloze: string) => {
   const match = cloze.match(/^\{\{c\d+:.*:(.+)\}\}$/)
+  if (!match) {
+    throw Error(`Invalid cloze ${cloze}`)
+  }
+  else {
+    return match[1]
+  }
+}
+
+/**
+ * Extract the hint part from a Cloze.
+ * E.g. from '{{c1::Paris}}' gets ''
+ * from '{{c1:halten:halt}}' gets 'halten'
+*/
+const hintFromCloze = (cloze: string) => {
+  const match = cloze.match(/^\{\{c\d+:(.*):.+\}\}$/)
   if (!match) {
     throw Error(`Invalid cloze ${cloze}`)
   }
@@ -54,11 +70,12 @@ interface ClozeFieldProps {
 function ClozeField(props: ClozeFieldProps) {
   const [answer, setAnswer] = useState<string>('')
   const expectedAnswer = answerFromCloze(props.clozeContent)
+  const hint = hintFromCloze(props.clozeContent)
   return (
     <span>
       <Input
         autoFocus={props.autoFocus}
-        label={{ basic: true, content: 'test hint' }}
+        label={hint ? { basic: true, content: `(${hint})` } : null}
         labelPosition='left'
         autoCapitalize="off"
         autoComplete="off"
