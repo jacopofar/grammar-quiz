@@ -40,10 +40,10 @@ async def store_language_codes(conn: Connection) -> Dict[str, int]:
     max_id = 0
     async with conn.transaction():
         res = await conn.fetch('SELECT id, name, iso693_3 FROM language')
-        for l in res:
-            languages_ids[l['iso693_3']] = (l['id'], l['name'])
-            if max_id < l['id']:
-                max_id = l['id']
+        for lng in res:
+            languages_ids[lng['iso693_3']] = (lng['id'], lng['name'])
+            if max_id < lng['id']:
+                max_id = lng['id']
     for iso, name in ISO_693_3.items():
         if iso in languages_ids:
             pre_name = languages_ids[iso][1]
@@ -166,15 +166,15 @@ async def merge_tables(conn: Connection, p_id: int):
             FROM card_h{p_id} c
                 LEFT JOIN card_stg_h{p_id} s
                 USING (from_id, to_id)
-            WHERE c.from_id IS NULL
+            WHERE s.from_id IS NULL
             """)
-        if res['to_delete'] > 100:
+        if res['to_delete'] > 500:
             # around 10 cards are deleted per day, too many may be an issue with the
             # file, so better stop rather than deleting everything
             raise ValueError(f"Suspect number of cards to delete: {res['to_delete']}")
         if res['to_delete'] > 0:
-            logger.info(f"Deleting these {res['to_delete']} cards")
-            await conn.execute("""
+            logger.info(f"Found {res['to_delete']} invalid cards, deleting them")
+            await conn.execute(f"""
                 DELETE
                 FROM card_h{p_id}
                 WHERE
@@ -187,7 +187,7 @@ async def merge_tables(conn: Connection, p_id: int):
                             LEFT JOIN card_stg_h{p_id} s
                                 USING (from_id, to_id)
                         WHERE
-                            c.from_id IS NULL)
+                            s.from_id IS NULL)
                 """)
         else:
             logger.info('There were no cards to delete')
@@ -202,11 +202,7 @@ async def merge_tables(conn: Connection, p_id: int):
                 WHERE
                     c.from_id = s.from_id
                 AND c.to_id = s.to_id
-                AND (
-                        c.from_txt <> s.from_txt
-                    OR  c.original_txt <> s.original_txt
-                    OR  c.to_tokens   <> s.to_tokens
-                    )
+                AND (c.from_txt, c.to_tokens) <> (s.from_txt, s.to_tokens)
             """)
         logger.info(f'Update successful: changes {res}')
         logger.info('Inserting new cards...')
@@ -230,7 +226,7 @@ async def main(jsonl_file: str):
     await create_staging_table(conn)
     logger.info('Staging table ready, ingesting the cards...')
     await ingest_cards_file(conn, jsonl_file, language_ids)
-    logger.info(f'Staging table ingested!')
+    logger.info('Staging table ingested!')
     for i in range(10):
         logger.info(f'Merging partition {i}')
         await merge_tables(conn, i)

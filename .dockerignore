@@ -2,6 +2,7 @@
 scripts/generate_cards/*.csv
 scripts/generate_cards/*.jsonl
 scripts/*.jsonl
+scripts/*.tsv
 sentences.*
 links.*
 frontend/node_modules
