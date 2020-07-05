@@ -1,8 +1,9 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { Button, Container, Dropdown, Grid, Menu } from 'semantic-ui-react'
-import { HashRouter as Router, Route, Switch } from 'react-router-dom'
+import { Link, HashRouter as Router, Route, Switch } from 'react-router-dom'
 
+import Faq from './Faq'
 import Login from './Login'
 import Register from './Register'
 import Study from './Study'
@@ -33,22 +34,20 @@ function App() {
           <Menu.Item header>
             <a href="/">Grammar quiz</a>
           </Menu.Item>
-          <Dropdown item simple text='Menu'>
-            <Dropdown.Menu>
+          <Dropdown item simple inverted text='Menu'>
+            <Dropdown.Menu className="blackeddropdown">
             {loggedInUser?.loggedIn ?
              <Button
-             content={`logout ${loggedInUser.name}`}
-             onClick={() => {
-              axios.post('/login/logout').then(() =>{ window.location.href='/'})}
+              color='red'
+              content={`logout ${loggedInUser.name}`}
+              onClick={() => {
+                axios.post('/login/logout').then(() =>{ window.location.href='/'})}
               }
             />
              :
              null}
-              {/* <Dropdown.Item>List Item</Dropdown.Item>
-              <Dropdown.Item>List Item</Dropdown.Item>
-              <Dropdown.Divider />
-              <Dropdown.Header>Header Item</Dropdown.Header>
-              <Dropdown.Item>List Item</Dropdown.Item> */}
+             <Dropdown.Divider />
+             <Dropdown.Item><Link to="/faq"><h3>FAQ</h3></Link></Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
       </Container>
@@ -63,6 +62,9 @@ function App() {
             </Route>
             <Route path="/register">
               <Register />
+            </Route>
+            <Route path="/faq">
+                <Faq />
             </Route>
             <Route exact path="/">
             {loggedInUser ?
