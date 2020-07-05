@@ -17,3 +17,17 @@ code {
 .ui.top.fixed.menu {
   z-index: 8;
 }
+
+/* These are necessary to have an inverted submenu, by efault does not work*/
+.ui.inverted.menu .menu.transition.visible {
+  background: #1b1c1d;
+}
+
+.ui.inverted.menu .menu.transition.blackeddropdown {
+  background: #1b1c1d;
+}
+
+/*more space between logout button and menu*/
+.menu.transition .ui.button {
+  margin: 0.3em;
+}
