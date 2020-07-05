@@ -6,19 +6,16 @@ function Faq() {
   return (
     <Segment>
       <Header as='h3'>What is this?</Header>
-      <p>This is a tool that allows you to exercise your grammar using sentences from
-      <a href="https://tatoeba.org/">Tatoeba</a>.</p>
+      <p>This is a tool that allows you to exercise your grammar using sentences from <a href="https://tatoeba.org/">Tatoeba</a>.</p>
       <p>Using <a href="https://en.wikipedia.org/wiki/Spaced_repetition">Spaced Repetition</a> you can better memorize
       the grammar rules of a language, taking note on the cards regarding the reason for some word choice.</p>
       <Header as='h3'>How much does it cost?</Header>
-      <p>It's free and <a href="https://github.com/jacopofar/grammar-quiz">the code of the website</a> is publicly
-      available.</p>
-      <p>This is a project from the <a href="https://blog.tatoeba.org/2020/05/announcing-kodoeba-1.html">Kodoba</a>
-      event</p>
+      <p>It's free and open source, <a href="https://github.com/jacopofar/grammar-quiz">the code of the website</a> is publicly
+      available under the MIT license.</p>
+      <p>This is a project from the <a href="https://blog.tatoeba.org/2020/05/announcing-kodoeba-1.html">Kodoba</a> event</p>
       <Header as='h3'>How are the questions generated?</Header>
       <p>The sentences from Tatoeba, around 12 millions at the moment, are processed to extract the words statistically more likely to
-         have a grammar role, and compared with multilingual data from
-         <a href="https://en.wiktionary.org/wiki/Wiktionary:Main_Page">en.wiktionary</a> to detect and display the dictionary forms</p>
+         have a grammar role, and compared with multilingual data from <a href="https://en.wiktionary.org/wiki/Wiktionary:Main_Page">en.wiktionary</a> to detect and display the dictionary forms</p>
       <Header as='h3'>Do I have to login?</Header>
       <p>No. But without logging in you cannot take custom notes on the sentences and the spaced repetition system
         cannot show you the sentences that were problematic to you in the past.</p>
