@@ -30,7 +30,7 @@ ANOTHER_CLOZE_FACTOR = 2
 HIDE_BASE_FORM_FACTOR = 2
 
 # how many clozes per sentence, it never goes above
-MAX_CLOZES = 3
+MAX_CLOZES = 4
 
 # how often to add a fake cloze that doesn't replace anything
 EMPTY_CLOZE_FACTOR = 200
@@ -44,7 +44,7 @@ TOLERATE_SPACE_FACTOR = 200
 WORD_MIN_RANK = 1000
 
 # evil evil words to not cover with the cloze
-FORBIDDEN_CLOZE_TOKENS = {'Layla', 'Maria', 'Mary', 'Muriel', 'Tom'}
+FORBIDDEN_CLOZE_TOKENS = {'Layla', 'Maria', 'Mary', 'Marias', 'Muriel', 'Tom'}
 
 # how long (characters) can a sentence be to be accepted
 MAX_SENTENCE_LENGTH = 250
@@ -228,7 +228,7 @@ def main_multi(sentence_file: str, link_file: str, base_forms_file: str):
                 if r.randint(1, HIDE_BASE_FORM_FACTOR) != 1:
                     tokens[to_replace_idx] = ''.join([
                         '{{c',
-                        str(cloze_idx),
+                        'XXX',
                         ':',
                         base_forms[to_lang][norm_token],
                         ':',
@@ -254,7 +254,7 @@ def main_multi(sentence_file: str, link_file: str, base_forms_file: str):
                 continue
             tokens[to_replace_idx] = ''.join([
                 '{{c',
-                str(cloze_idx),
+                'XXX',
                 '::',
                 tokens[to_replace_idx],
                 '}}'
@@ -272,7 +272,7 @@ def main_multi(sentence_file: str, link_file: str, base_forms_file: str):
                         or not tokens[to_insert_idx].startswith('{{')):
                     tokens.insert(
                         to_insert_idx,
-                        '{{c' + str(cloze_idx) + '::-}}'
+                        '{{cXXX::-}}'
                     )
                     cloze_idx += 1
                     if cloze_idx > MAX_CLOZES:
@@ -286,6 +286,13 @@ def main_multi(sentence_file: str, link_file: str, base_forms_file: str):
             continue
         out.write(from_txt)
         out.write('<br>')
+        # replace XXX with the cloze ids, so they are ordered
+        cloze_idx = 1
+        for i, t in enumerate(tokens):
+            if t.startswith('{{'):
+                tokens[i] = t.replace('XXX', str(cloze_idx))
+                cloze_idx += 1
+
         out.write(' '.join(tokens))
         out.write('\n')
 
