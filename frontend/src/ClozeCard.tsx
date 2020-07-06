@@ -268,3 +268,4 @@ function ClozeCard(props: CardProps) {
 }
 
 export default ClozeCard
+export { isAnswerOK, answerFromCloze, hintFromCloze }
