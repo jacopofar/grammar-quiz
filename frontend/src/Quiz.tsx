@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { Header, Segment, Table } from 'semantic-ui-react'
 import update from 'immutability-helper';
 
-import ClozeCard from './ClozeCard'
+import ClozeCard, { answerFromCloze, isAnswerOK } from './ClozeCard'
 
 export type Card = {
   fromLanguage: string
@@ -131,6 +131,32 @@ function Quiz(props: Props) {
     }
   }
 
+  /**
+   * Get the representation of a target token, taking into account the answers
+   */
+  const tokenDiff = (token: string, answers: string[]) => {
+    const clozeIdx = token.match(/^\{\{c(\d+):.*:.+\}\}$/)
+    if (clozeIdx === null) {
+      return (<span>{token}</span>)
+    }
+    else{
+      const givenAnswer = answers[Number(clozeIdx[1]) - 1]
+      const expectedAnswer = answerFromCloze(token)
+
+      if (isAnswerOK(expectedAnswer, givenAnswer)){
+        console.log('Wrong answer:', expectedAnswer, givenAnswer)
+        return (<span className="correct-answer">{givenAnswer}</span>)
+      }
+      else {
+        return (
+          <>
+            <span className="wrong-answer">{givenAnswer}</span>
+            <span className="expect-answer"> ({expectedAnswer}) </span>
+          </>)
+      }
+    }
+  }
+
   if (cardIdx < cards.length){
     return(
     <div>
@@ -141,6 +167,8 @@ function Quiz(props: Props) {
         onTrouble={handleWrongCard}
         onNoteTaking={takeNote}
         loggedIn={props.loggedIn}
+        // this is used only to force the props reset
+        key={cardIdx}
       />
       <Segment>
         <p>Sentence {cardIdx + 1} of {cards.length}, including repetitions</p>
@@ -166,8 +194,8 @@ function Quiz(props: Props) {
             {answers.map(ans =>
             <Table.Row>
               <Table.Cell>{ans.fromTxt}</Table.Cell>
-              <Table.Cell>{ans.toTokens.join(' ')}</Table.Cell>
-              <Table.Cell>{ans.answers.join(', ')}</Table.Cell>
+              <Table.Cell>{ans.toTokens.map((t) => tokenDiff(t, ans.answers))}</Table.Cell>
+              <Table.Cell>{ans.answers.join(',')}</Table.Cell>
             </Table.Row>
             )}
           </Table.Body>

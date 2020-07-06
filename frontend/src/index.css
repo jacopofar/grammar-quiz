@@ -31,3 +31,19 @@ code {
 .menu.transition .ui.button {
   margin: 0.3em;
 }
+
+span.correct-answer {
+  font-weight: bold;
+  color: darkgreen;
+  text-decoration: underline;
+}
+
+span.wrong-answer {
+  font-weight: bold;
+  color: red;
+  text-decoration: underline;
+}
+
+span.expected-answer {
+  font-style: italic;
+}
