@@ -1,7 +1,10 @@
 .PHONY: local-install
+# also re-install if something already there
 local-install:
+	rm -rf frontend/node_modules
 	cd frontend && \
 		yarn install
+	rm -rf backend/.venv
 	cd backend && \
 		python3 -m venv .venv
 	backend/.venv/bin/python3 -m pip install -r requirements.txt
