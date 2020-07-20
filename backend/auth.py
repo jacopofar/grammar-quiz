@@ -89,4 +89,5 @@ def attach_auth(app: FastAPI):
         return dict(
             authenticated=True,
             name=request.session['name'],
+            id=request.session['id'],
           )

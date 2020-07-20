@@ -352,3 +352,17 @@ async def take_note(note: NoteAboutCard, request: Request):
             note.hint,
             note.explanation,
         )
+
+@app.get("/my_revision_stats")
+async def my_revision_stats(request: Request):
+    current_user = request.session.get('id', 1)
+    if current_user == 1:
+        return JSONResponse(
+            dict(error='Not logged in, cannot get statistics'),
+            status_code=status.HTTP_403_UNAUTHORIZED,
+        )
+    async with get_conn() as conn:
+        return await conn.fetch(
+            get_sql('get_user_stats'),
+            current_user,
+        )
