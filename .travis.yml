@@ -25,7 +25,8 @@ before_install:
   - curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
   - sudo apt-get update
   - sudo apt-get install -y nodejs
-  - nvm use 12
+  - nvm ls
+  - nvm use latest
 env:
   global:
   - PG_CONN_STR="postgresql://testuser:secret@localhost:5433/grammarquiz"
