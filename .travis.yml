@@ -21,12 +21,8 @@ before_install:
   - psql -U postgres -p 5433 -c "CREATE DATABASE grammarquiz OWNER testuser;"
   - psql -U testuser -p 5433 -f scripts/populate_db/schema.sql grammarquiz
   - psql -U testuser -p 5433 -q -f tests/database_content.sql grammarquiz
-# manually install nodejs 12, the one provided for some reason is 8.x
-  - curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-  - sudo apt-get update
-  - sudo apt-get install -y nodejs
-  - nvm ls
-  - nvm use latest
+# use stable, which is 11 now
+  - nvm use stable
 env:
   global:
   - PG_CONN_STR="postgresql://testuser:secret@localhost:5433/grammarquiz"
