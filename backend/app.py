@@ -377,10 +377,15 @@ async def my_revision_stats(request: Request):
 
 @app.get("/download/revision_logs.json")
 async def revision_logs(request: Request):
+    """Retrieve the revision log as a JSONL stream.
+
+    It contains the revision timestamp and content, and the associated
+    Tatoeba sentence ids.
+    """
     current_user = request.session.get('id', 1)
     if current_user == 1:
         return JSONResponse(
-            dict(error='Not logged in, cannot get statistics'),
+            dict(error='Not logged in, cannot get revision data'),
             status_code=status.HTTP_403_UNAUTHORIZED,
         )
 
