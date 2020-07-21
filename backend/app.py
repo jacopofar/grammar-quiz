@@ -7,9 +7,10 @@ from typing import List
 
 from fastapi import FastAPI, status
 from fastapi.staticfiles import StaticFiles
+import orjson
 from pydantic import BaseModel
 from starlette.requests import Request
-from starlette.responses import RedirectResponse, JSONResponse
+from starlette.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from backend.dbutil import get_conn, attach_db_cycle, get_sql
 from backend.auth import attach_auth
@@ -353,8 +354,14 @@ async def take_note(note: NoteAboutCard, request: Request):
             note.explanation,
         )
 
+
 @app.get("/my_revision_stats")
 async def my_revision_stats(request: Request):
+    """Provide daily revision stats.
+
+    The result is an array that for every day (UTC) reports how many
+    reviews were there and how many were correct.
+    """
     current_user = request.session.get('id', 1)
     if current_user == 1:
         return JSONResponse(
@@ -366,3 +373,28 @@ async def my_revision_stats(request: Request):
             get_sql('get_user_stats'),
             current_user,
         )
+
+
+@app.get("/download/revision_logs.json")
+async def revision_logs(request: Request):
+    current_user = request.session.get('id', 1)
+    if current_user == 1:
+        return JSONResponse(
+            dict(error='Not logged in, cannot get statistics'),
+            status_code=status.HTTP_403_UNAUTHORIZED,
+        )
+
+    async def stream_revlogs(current_user):
+        print('Streaming for user', current_user)
+        async with get_conn() as conn:
+            async with conn.transaction():
+                nl = '\n'.encode()
+                async for record in conn.cursor(
+                    get_sql('get_all_user_reviews'),
+                        current_user):
+                    print(record)
+                    yield orjson.dumps(dict(record)) + nl
+
+    return StreamingResponse(
+        stream_revlogs(current_user),
+        media_type='text/plain; charset=utf8')

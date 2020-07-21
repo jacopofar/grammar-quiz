@@ -40,6 +40,9 @@ function MyProfile() {
       <h3>Your study activity</h3>
       <p>So far you gave <strong>{totalAnswers}</strong> answers.</p>
       <p>Of these, <strong>{totalCorrect}</strong> were correct.</p>
+      <h3>Download</h3>
+      <p>You can always download your data, useful for example if you want to extract statistics</p>
+      <p><a href="/download/revision_logs.json" download>Download all your review data in JSONL format</a></p>
     </Segment>
   )
 }
