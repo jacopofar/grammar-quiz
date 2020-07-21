@@ -5,6 +5,7 @@ import { Link, HashRouter as Router, Route, Switch } from 'react-router-dom'
 
 import Faq from './Faq'
 import Login from './Login'
+import MyProfile from './MyProfile'
 import Register from './Register'
 import Study from './Study'
 
@@ -37,13 +38,16 @@ function App() {
           <Dropdown item simple inverted text='Menu'>
             <Dropdown.Menu className="blackeddropdown">
             {loggedInUser?.loggedIn ?
-             <Button
-              color='red'
-              content={`logout ${loggedInUser.name}`}
-              onClick={() => {
-                axios.post('/login/logout').then(() =>{ window.location.href='/'})}
-              }
-            />
+            <>
+              <Button
+                color='red'
+                content={`logout ${loggedInUser.name}`}
+                onClick={() => {
+                  axios.post('/login/logout').then(() =>{ window.location.href='/'})}
+                }
+              />
+              <Dropdown.Item><Link to="/my-profile"><h3>My profile</h3></Link></Dropdown.Item>
+            </>
              :
              null}
              <Dropdown.Divider />
@@ -58,13 +62,16 @@ function App() {
 
           <Switch>
             <Route path="/login">
-                <Login />
+                <Login/>
             </Route>
             <Route path="/register">
-              <Register />
+              <Register/>
             </Route>
             <Route path="/faq">
-                <Faq />
+                <Faq/>
+            </Route>
+            <Route path="/my-profile">
+                <MyProfile/>
             </Route>
             <Route exact path="/">
             {loggedInUser ?

@@ -1,8 +1,6 @@
 language: python
 python:
   - '3.7'
-node_js:
-  - 12
 
 services:
   - postgresql
@@ -23,7 +21,10 @@ before_install:
   - psql -U postgres -p 5433 -c "CREATE DATABASE grammarquiz OWNER testuser;"
   - psql -U testuser -p 5433 -f scripts/populate_db/schema.sql grammarquiz
   - psql -U testuser -p 5433 -q -f tests/database_content.sql grammarquiz
-
+# use v14.5.0, most recent at the moment
+  - nvm ls-remote
+  - nvm install v14.5.0
+  - nvm use v14.5.0
 env:
   global:
   - PG_CONN_STR="postgresql://testuser:secret@localhost:5433/grammarquiz"

@@ -57,4 +57,4 @@ def test_create_user(client):
         "/login/whoami",
         )
     assert response.status_code == 200
-    assert response.json() == {'authenticated': True, 'name': 'realuser'}
+    assert response.json() == {'authenticated': True, 'name': 'realuser', 'id': 2}

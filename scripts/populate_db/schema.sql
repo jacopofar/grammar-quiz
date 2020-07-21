@@ -92,6 +92,8 @@ CREATE TABLE revlog (
     PRIMARY KEY (from_id, to_id, account_id, review_time)
 );
 
+CREATE INDEX ON revlog(account_id);
+
 -- users logging in with credentials, not SSO
 CREATE TABLE account_internal (
     username      TEXT                     NOT NULL,

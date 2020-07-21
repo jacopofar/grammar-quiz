@@ -7,3 +7,5 @@ authlib==0.14.3
 httpx==0.13.3
 # for testing
 pytest==5.4.3
+# for fast JSON serialization with support for many datatypes
+orjson==3.2.2
