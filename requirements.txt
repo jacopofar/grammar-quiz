@@ -1,5 +1,5 @@
 fastapi[all]==0.59.0
-uvicorn==0.11.6
+uvicorn==0.11.7
 asyncpg==0.20.1
 # oauth support
 authlib==0.14.3
