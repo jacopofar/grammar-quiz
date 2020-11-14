@@ -42,10 +42,10 @@ const hintFromCloze = (cloze: string) => {
 */
 const isAnswerOK = (expected: string, answer: string) => {
   // tolerate an extra punctuation mark
-  if (/['.,?!;。、？！' ]/.test(expected.slice(-1))) {
+  if (/['.,?!;。、？！ ]/.test(expected.slice(-1))) {
     expected = expected.slice(0, -1)
   }
-  if (/['.,?!;。、？！' ]/.test(answer.slice(-1))) {
+  if (/['.,?!;。、？！ ]/.test(answer.slice(-1))) {
     answer = answer.slice(0, -1)
   }
   if (answer === expected) {
