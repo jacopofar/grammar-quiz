@@ -73,9 +73,6 @@ def tokenize(text: str, lang: str):
     boundaries = list(_breakers[lang])
     return [text[i:j] for i, j in zip([0] + boundaries, boundaries)]
 
-    # any other language, just use spaces
-    return text.split()
-
 
 def get_unambiguous_roots(base_forms_file: str) -> Dict[str, Dict[str, str]]:
     """Get the list of words repleaceable with an unambiguous lemma.
