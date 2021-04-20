@@ -1,6 +1,6 @@
 fastapi[all]==0.59.0
 uvicorn==0.11.7
-asyncpg==0.20.1
+asyncpg==0.21.0
 # oauth support
 authlib==0.14.3
 # internal extra dependency of oauthlib
