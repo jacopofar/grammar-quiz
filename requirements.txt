@@ -4,7 +4,7 @@ asyncpg==0.21.0
 # oauth support
 authlib==0.14.3
 # internal extra dependency of oauthlib
-httpx==0.13.3
+httpx==0.23.0
 # for testing
 pytest==5.4.3
 # for fast JSON serialization with support for many datatypes
