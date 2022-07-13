@@ -1,7 +1,6 @@
 # grammar-quiz
 Online cloze deletion tool focused on grammar
 
-[Try the demo here](https://grammarquiz.online/app/)
 
 [![Build Status](https://travis-ci.org/jacopofar/grammar-quiz.svg?branch=master)](https://travis-ci.org/jacopofar/grammar-quiz)
 
